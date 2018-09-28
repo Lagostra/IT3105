@@ -1,4 +1,5 @@
 import tensorflow as tf
+import numpy as np
 
 _activation_functions = {
     'relu': tf.nn.relu,
@@ -9,9 +10,13 @@ _activation_functions = {
 
 
 class Dense:
-    def __init__(self, nodes, input_shape, activation_function='relu', name=None):
-        self.weights = tf.Variable()
-        self.bias = tf.Variable()
+    def __init__(self, input_size, nodes, activation_function='relu', name=None, weight_range=(-1.0, 1.0)):
+        weight_name = None if name is None else name + '_weights'
+        bias_name = None if name is None else name + '_bias'
+        self.weights = tf.Variable(np.random.uniform(weight_range[0], weight_range[1],
+                                                     size=(input_size, nodes)), name=weight_name)
+        self.bias = tf.Variable(np.random.uniform(weight_range[0], weight_range[1],
+                                                     size=(nodes)), name=bias_name)
         self.activation_function = _activation_functions[activation_function.lower()] if activation_function else None
         self.name = name
 
