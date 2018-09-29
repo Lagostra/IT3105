@@ -3,6 +3,20 @@ import numpy as np
 import random
 
 
+_optimizers = {
+    'adam': tf.train.AdamOptimizer,
+    'adadelta': tf.train.AdadeltaOptimizer,
+    'adagrad': tf.train.AdagradOptimizer,
+    'gradient_descent': tf.train.GradientDescentOptimizer,
+    'rmsprop': tf.train.RMSPropOptimizer,
+}
+
+_loss_functions = {
+    'mse': lambda y, x: tf.reduce_mean(tf.square(y - x)),
+    'mae': tf.losses.absolute_difference,
+    'cross_entropy': lambda y, x: tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x),
+}
+
 class Network:
     inputs = None
     targets = None
@@ -11,14 +25,16 @@ class Network:
     session = None
     loss = None
 
-    def __init__(self, layers, data, learning_rate=0.01, steps=1000, minibatch_size=100):
+    def __init__(self, layers, data, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
+                 loss_function='mse'):
         self.layers = layers
-
         self.data = np.array(data)
 
         self.learning_rate = learning_rate
         self.steps = steps
         self.minibatch_size = minibatch_size
+        self.optimizer = _optimizers[optimizer]
+        self.loss_function = _loss_functions[loss_function]
 
     def build(self):
         self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape)
@@ -30,8 +46,8 @@ class Network:
 
         self.outputs = x
 
-        self.loss = tf.nn.softmax_cross_entropy_with_logits_v2(logits=x, labels=self.targets)
-        self.training_op = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
+        self.loss = self.loss_function(self.targets, x)
+        self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
     def train(self):
         with tf.Session() as sess:
