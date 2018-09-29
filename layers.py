@@ -1,7 +1,10 @@
 import tensorflow as tf
 
 _activation_functions = {
-    'relu': tf.nn.relu
+    'relu': tf.nn.relu,
+    'softmax': tf.nn.softmax,
+    'sigmoid': tf.nn.sigmoid,
+    'tanh': tf.nn.tanh,
 }
 
 

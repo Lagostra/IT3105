@@ -5,7 +5,7 @@ import tflowtools as tft
 import numpy as np
 
 layers = [
-    DenseSequence([10, 8, 10])
+    DenseSequence([10, 8, 10], activation_function='sigmoid')
 ]
 
 network = Network(layers, tft.gen_all_one_hot_cases(10), minibatch_size=8, steps=2500, loss_function='cross_entropy',
