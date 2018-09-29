@@ -27,10 +27,12 @@ def load_data(data_source, case_fraction, validation_fraction, test_fraction):
         data = data_source
 
     data = data[:int(len(data) * case_fraction)]
-    train_end = int(len(data) * (1 - validation_fraction - test_fraction))
-    validate_end = int(len(data) * (1 - test_fraction))
+    train_end = int(len(data) * (1 - max(validation_fraction, 0) - max(test_fraction, 0)))
+    validate_end = int(len(data) * (1 - max(test_fraction, 0)))
 
-    train, validate, test = data[:train_end], data[train_end:validate_end], data[validate_end:]
+    train = data[:train_end]
+    validate = data if validation_fraction == -1 else data[train_end:validate_end]
+    test = data if test_fraction == -1 else data[validate_end:]
 
     return train, validate, test
 
@@ -54,7 +56,7 @@ class Network:
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
-                 validation_interval=50, session=None):
+                 validation_interval=50, session=None, output_functions=None):
         self.layers = layers
         self.learning_rate = learning_rate
         self.steps = steps
@@ -63,6 +65,7 @@ class Network:
         self.loss_function = _loss_functions[loss_function]
         self.validation_interval = validation_interval
         self.session = session
+        self.output_functions = output_functions
 
         self.data = load_data(data_source, case_fraction, validation_fraction, test_fraction)
 
@@ -75,9 +78,34 @@ class Network:
             x = layer.execute(x)
 
         self.outputs = x
+        if self.output_functions:
+            for f in self.output_functions:
+                self.outputs = f(self.outputs)
 
         self.loss = self.loss_function(self.targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
+
+    def predict(self, inputs):
+        feed_dict = {
+            self.inputs: inputs
+        }
+
+        result = self.session.run([self.outputs], feed_dict=feed_dict)[0]
+        return result
+
+    def calculate_accuracy(self, data_set):
+        inputs, targets = input_target_split(data_set)
+        inputs = np.array(inputs)
+        predictions = self.predict(inputs)
+
+        n_correct = 0
+        for case in zip(targets, predictions):
+            correct = True
+            for item in zip(case[0], case[1]):
+                correct = correct and item[0] == item[1]
+            n_correct += int(correct)
+        # n_correct = sum(map(lambda x: int(x[0] == x[1]), zip(targets, predictions)))
+        return n_correct / len(targets)
 
     def train(self, plot_results=False):
         if not self.session:
@@ -86,6 +114,7 @@ class Network:
         train_set, validate_set, _ = self.data
 
         errors = []
+        validate_accuracies = []
 
         for i in range(1, self.steps + 1):
             minibatch = random.sample(list(train_set), self.minibatch_size)
@@ -109,15 +138,16 @@ class Network:
                 else:
                     errors.append(sum(l))
 
-        if plot_results:
-            plt.plot(np.arange(0, self.steps, 50), errors)
-            plt.legend(['Minibatch error'])
-            plt.xlabel('Step')
-            plt.show()
+            if i % self.validation_interval == 0 and len(validate_set):
+                validate_accuracies.append(self.calculate_accuracy(validate_set))
 
-        softmax = tf.nn.softmax(self.outputs)
-        argmax = tf.argmax(softmax)
-        one_hot = tf.one_hot(argmax, 8)
-        result = self.session.run([argmax], feed_dict={self.inputs: input_target_split(train_set)[0]})
-        print(result)
-        print(self.inputs)
+        if plot_results:
+            fig, ax1 = plt.subplots()
+
+            ax1.plot(np.arange(0, self.steps, 50), errors, c='blue')
+            if len(validate_accuracies):
+                ax2 = ax1.twinx()
+                ax2.plot(np.arange(0, self.steps, self.validation_interval), validate_accuracies, c='red')
+            fig.legend(['Minibatch error', 'Validation accuracy'])
+            ax1.set_xlabel('Step')
+            plt.show()
