@@ -13,18 +13,20 @@ class Dense:
     def __init__(self, input_size, nodes, activation_function='relu', name=None, weight_range=(-1.0, 1.0)):
         weight_name = None if name is None else name + '_weights'
         bias_name = None if name is None else name + '_bias'
-        self.weights = tf.Variable(np.random.uniform(weight_range[0], weight_range[1],
-                                                     size=(input_size, nodes)), name=weight_name)
-        self.bias = tf.Variable(np.random.uniform(weight_range[0], weight_range[1],
-                                                     size=(nodes)), name=bias_name)
+
+        self.weights = tf.Variable(tf.random_uniform([input_size, nodes]))
+        self.bias = tf.Variable(tf.random_normal([nodes]))
+
+        # self.weights = tf.Variable(tf.random_uniform([input_size, nodes], minval=weight_range[0], maxval=weight_range[1]), name=weight_name)
+        # self.bias = tf.Variable(tf.random_uniform([nodes], minval=weight_range[0], maxval=weight_range[1]), name=bias_name)
         self.activation_function = _activation_functions[activation_function.lower()] if activation_function else None
         self.name = name
 
     def execute(self, input):
         if self.activation_function:
-            return self.activation_function(tf.matmul(input, self.weights) + self.bias, name=self.name)
+            return self.activation_function(tf.add(tf.matmul(input, self.weights), self.bias), name=self.name)
         else:
-            return tf.Variable(tf.matmul(input, self.weights) + self.bias, name=self.name)
+            return tf.add(tf.matmul(input, self.weights), self.bias, name=self.name)
 
 
 class DenseSequence:
