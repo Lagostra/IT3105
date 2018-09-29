@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import random
 import tflowtools as tft
+import matplotlib.pyplot as plt
 
 
 _optimizers = {
@@ -78,11 +79,13 @@ class Network:
         self.loss = self.loss_function(self.targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
-    def train(self):
+    def train(self, plot_results=False):
         if not self.session:
             self.session = tft.gen_initialized_session()
 
         train_set, validate_set, _ = self.data
+
+        errors = []
 
         for i in range(1, self.steps + 1):
             minibatch = random.sample(list(train_set), self.minibatch_size)
@@ -98,6 +101,19 @@ class Network:
 
             if i % 50 == 0:
                 print('[Step {}] Loss: {}'.format(i, l))
+
+                try:
+                    iter(l)
+                except TypeError:
+                    errors.append(l)
+                else:
+                    errors.append(sum(l))
+
+        if plot_results:
+            plt.plot(np.arange(0, self.steps, 50), errors)
+            plt.legend(['Minibatch error'])
+            plt.xlabel('Step')
+            plt.show()
 
         softmax = tf.nn.softmax(self.outputs)
         argmax = tf.argmax(softmax)
