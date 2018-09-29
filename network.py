@@ -65,7 +65,14 @@ class Network:
         self.loss_function = _loss_functions[loss_function]
         self.validation_interval = validation_interval
         self.session = session
-        self.output_functions = output_functions
+
+        if output_functions == 'argmax_one_hot':
+            self.output_functions = [
+                lambda x: tf.argmax(x, axis=1),
+                lambda x: tf.one_hot(x, layers[-1].output_shape[0])
+            ]
+        else:
+            self.output_functions = output_functions
 
         self.data = load_data(data_source, case_fraction, validation_fraction, test_fraction)
 
