@@ -1,6 +1,7 @@
 import tensorflow as tf
 import numpy as np
 import random
+import tflowtools as tft
 
 
 _optimizers = {
@@ -73,29 +74,29 @@ class Network:
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
     def train(self):
-        with tf.Session() as sess:
-            sess.run(tf.global_variables_initializer())
+        if not self.session:
+            self.session = tft.gen_initialized_session()
 
-            train_set, validate_set, _ = self.data
+        train_set, validate_set, _ = self.data
 
-            for i in range(1, self.steps + 1):
-                minibatch = np.array(random.sample(list(train_set), self.minibatch_size))
+        for i in range(1, self.steps + 1):
+            minibatch = np.array(random.sample(list(train_set), self.minibatch_size))
 
-                inputs, targets = input_target_split(minibatch)
+            inputs, targets = input_target_split(minibatch)
 
-                feed_dict = {
-                    self.inputs: inputs,
-                    self.targets: inputs
-                }
+            feed_dict = {
+                self.inputs: inputs,
+                self.targets: inputs
+            }
 
-                _, l = sess.run([self.training_op, self.loss], feed_dict=feed_dict)
+            _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
 
-                if i % 50 == 0:
-                    print('[Step {}] Loss: {}'.format(i, l))
+            if i % 50 == 0:
+                print('[Step {}] Loss: {}'.format(i, l))
 
-            softmax = tf.nn.softmax(self.outputs)
-            argmax = tf.argmax(softmax)
-            one_hot = tf.one_hot(argmax, 8)
-            result = sess.run([argmax], feed_dict={self.inputs: train_set[:, 0]})
-            print(result)
-            print(self.inputs)
+        softmax = tf.nn.softmax(self.outputs)
+        argmax = tf.argmax(softmax)
+        one_hot = tf.one_hot(argmax, 8)
+        result = self.session.run([argmax], feed_dict={self.inputs: train_set[:, 0]})
+        print(result)
+        print(self.inputs)
