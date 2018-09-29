@@ -22,3 +22,22 @@ class Dense:
         if self.activation_function:
             return self.activation_function(tf.add(tf.matmul(x, self.weights), self.bias), name=self.name)
         return tf.add(tf.matmul(x, self.weights), self.bias, name=self.name)
+
+
+class DenseSequence:
+    def __init__(self, layer_sizes, activation_function='relu', name=None):
+        self.input_shape = (layer_sizes[0],)
+        self.output_shape = (layer_sizes[-1],)
+        self.name = name
+        self.layers = []
+        for i in range(len(layer_sizes) - 1):
+            layer_name = None
+            if name:
+                layer_name = name + str(i + 1)
+
+            self.layers.append(Dense(layer_sizes[i], layer_sizes[i+1], activation_function, name=layer_name))
+
+    def execute(self, x):
+        for layer in self.layers:
+            x = layer.execute(x)
+        return x

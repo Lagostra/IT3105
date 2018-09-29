@@ -4,6 +4,7 @@ import random
 import tflowtools as tft
 import matplotlib.pyplot as plt
 
+from layers import Dense
 
 _optimizers = {
     'adam': tf.train.AdamOptimizer,
@@ -57,7 +58,14 @@ class Network:
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
                  validation_interval=50, session=None, output_functions=None):
-        self.layers = layers
+
+        if type(layers[0]) == int:
+            self.layers = []
+            for i in range(len(layers) - 1):
+                self.layers.append(Dense(layers[i], layers[i + 1]))
+        else:
+            self.layers = layers
+
         self.learning_rate = learning_rate
         self.steps = steps
         self.minibatch_size = minibatch_size
@@ -69,7 +77,7 @@ class Network:
         if output_functions == 'argmax_one_hot':
             self.output_functions = [
                 lambda x: tf.argmax(x, axis=1),
-                lambda x: tf.one_hot(x, layers[-1].output_shape[0])
+                lambda x: tf.one_hot(x, self.layers[-1].output_shape[0])
             ]
         else:
             self.output_functions = output_functions
