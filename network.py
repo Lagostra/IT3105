@@ -18,11 +18,12 @@ _loss_functions = {
     'cross_entropy': lambda y, x: tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x),
 }
 
+
 def load_data(data_source, case_fraction, validation_fraction, test_fraction):
     if type(data_source) == str:
         data = np.loadtxt(data_source, delimiter=',')
     else:
-        data = np.array(data_source)
+        data = data_source
 
     data = data[:int(len(data) * case_fraction)]
     train_end = int(len(data) * (1 - validation_fraction - test_fraction))
@@ -34,9 +35,13 @@ def load_data(data_source, case_fraction, validation_fraction, test_fraction):
 
 
 def input_target_split(data):
-    if len(data.shape) == 2:
-        return data[:, :-1], data[:, -1:]
-    return data[:, 0], data[:, 1]
+    if len(data[0]) == 2:
+        inputs = list(map(lambda x: x[0], data))
+        targets = list(map(lambda x: x[1], data))
+    else:
+        inputs = list(map(lambda x: x[:-1], data))
+        targets = list(map(lambda x: x[-1:], data))
+    return inputs, targets
 
 
 class Network:
@@ -80,13 +85,13 @@ class Network:
         train_set, validate_set, _ = self.data
 
         for i in range(1, self.steps + 1):
-            minibatch = np.array(random.sample(list(train_set), self.minibatch_size))
+            minibatch = random.sample(list(train_set), self.minibatch_size)
 
             inputs, targets = input_target_split(minibatch)
 
             feed_dict = {
                 self.inputs: inputs,
-                self.targets: inputs
+                self.targets: targets
             }
 
             _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
@@ -97,6 +102,6 @@ class Network:
         softmax = tf.nn.softmax(self.outputs)
         argmax = tf.argmax(softmax)
         one_hot = tf.one_hot(argmax, 8)
-        result = self.session.run([argmax], feed_dict={self.inputs: train_set[:, 0]})
+        result = self.session.run([argmax], feed_dict={self.inputs: input_target_split(train_set)[0]})
         print(result)
         print(self.inputs)
