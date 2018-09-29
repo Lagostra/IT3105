@@ -44,3 +44,11 @@ class DenseSequence:
         for layer in self.layers:
             x = layer.execute(x)
         return x
+
+
+class Dropout:
+    def __init__(self, keep_prob=0.8):
+        self.keep_prob = keep_prob
+
+    def execute(self, x):
+        return tf.nn.dropout(x, self.keep_prob)

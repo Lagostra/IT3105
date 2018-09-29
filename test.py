@@ -1,11 +1,11 @@
 from network import Network
-from layers import Dense, DenseSequence
+from layers import Dense, DenseSequence, Dropout
 import tensorflow as tf
 import tflowtools as tft
 import numpy as np
 
 layers = [
-    DenseSequence([10, 8, 10], activation_function='sigmoid')
+    DenseSequence([10, 8, 10], activation_function='sigmoid'),
 ]
 
 network = Network(layers, tft.gen_all_one_hot_cases(10), minibatch_size=8, steps=2500, loss_function='cross_entropy',
