@@ -17,28 +17,51 @@ _loss_functions = {
     'cross_entropy': lambda y, x: tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x),
 }
 
+def load_data(data_source, case_fraction, validation_fraction, test_fraction):
+    if type(data_source) == str:
+        data = np.loadtxt(data_source, delimiter=',')
+    else:
+        data = np.array(data_source)
+
+    data = data[:int(len(data) * case_fraction)]
+    train_end = int(len(data) * (1 - validation_fraction - test_fraction))
+    validate_end = int(len(data) * (1 - test_fraction))
+
+    train, validate, test = data[:train_end], data[train_end:validate_end], data[validate_end:]
+
+    return train, validate, test
+
+
+def input_target_split(data):
+    if len(data.shape) == 2:
+        return data[:, :-1], data[:, -1:]
+    return data[:, 0], data[:, 1]
+
+
 class Network:
     inputs = None
     targets = None
     outputs = None
     training_op = None
-    session = None
     loss = None
 
-    def __init__(self, layers, data, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
-                 loss_function='mse'):
+    def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
+                 loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
+                 validation_interval=50, session=None):
         self.layers = layers
-        self.data = np.array(data)
-
         self.learning_rate = learning_rate
         self.steps = steps
         self.minibatch_size = minibatch_size
         self.optimizer = _optimizers[optimizer]
         self.loss_function = _loss_functions[loss_function]
+        self.validation_interval = validation_interval
+        self.session = session
+
+        self.data = load_data(data_source, case_fraction, validation_fraction, test_fraction)
 
     def build(self):
-        self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape)
-        self.targets = tf.placeholder('float', shape=(None,) + self.layers[-1].output_shape)
+        self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape, name='inputs')
+        self.targets = tf.placeholder('float', shape=(None,) + self.layers[-1].output_shape, name='targets')
         x = self.inputs
 
         for layer in self.layers:
@@ -53,12 +76,16 @@ class Network:
         with tf.Session() as sess:
             sess.run(tf.global_variables_initializer())
 
+            train_set, validate_set, _ = self.data
+
             for i in range(1, self.steps + 1):
-                minibatch = np.array(random.sample(list(self.data), self.minibatch_size))
+                minibatch = np.array(random.sample(list(train_set), self.minibatch_size))
+
+                inputs, targets = input_target_split(minibatch)
 
                 feed_dict = {
-                    self.inputs: minibatch[:, 0],
-                    self.targets: minibatch[:, 1]
+                    self.inputs: inputs,
+                    self.targets: inputs
                 }
 
                 _, l = sess.run([self.training_op, self.loss], feed_dict=feed_dict)
@@ -69,6 +96,6 @@ class Network:
             softmax = tf.nn.softmax(self.outputs)
             argmax = tf.argmax(softmax)
             one_hot = tf.one_hot(argmax, 8)
-            result = sess.run([argmax], feed_dict={self.inputs: self.data[:, 0]})
+            result = sess.run([argmax], feed_dict={self.inputs: train_set[:, 0]})
             print(result)
             print(self.inputs)

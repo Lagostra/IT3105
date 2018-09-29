@@ -7,7 +7,8 @@ layers = [
     Dense(8, 16, name='layer2')
 ]
 
-network = Network(layers, tft.gen_all_one_hot_cases(16), minibatch_size=8, steps=5000, loss_function='cross_entropy')
+network = Network(layers, tft.gen_all_one_hot_cases(16), minibatch_size=8, steps=5000, loss_function='cross_entropy',
+                  validation_fraction=0, test_fraction=0)
 
 network.build()
 network.train()
