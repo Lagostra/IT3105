@@ -1,0 +1,7 @@
+Dataset,Network,Minibatch_size,Steps,Loss_function,Activation_function,Output_functions,Weight_range
+"gen_all_parity_cases(10, True)","[10, 50, 50, 2]",50,15000,cross_entropy,relu,'argmax_one_hot',
+"gen_symvect_dataset(101, 2000)","[101, 50, 1]",50,10000,mse,sigmoid,tf.round,"(-1, 1)"
+gen_all_one_hot_cases(50),"50, 12, 50",25,100,cross_entropy,relu,argmax_one_hot,
+"gen_vector_count_cases(500, 15)","15, 12, 16",100,15000,cross_entropy,relu,argmax_one_hot,
+"gen_segmented_vector_cases(25, 1000, 0, 8)",,,,,,,
+load_mnist_dataset(0.1),"[784, 1024, 64, 10]",100,5000,cross_entropy,relu,argmax_one_hot,
