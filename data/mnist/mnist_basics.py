@@ -173,6 +173,17 @@ def load_flat_text_cases(filename, dir=__mnist_path__):
     x_t = [list(map(int, line)) for line in lines[1:]]
     return x_t, x_l
 
+def load_mnist_dataset(fraction=1.0):
+    features, labels = load_all_flat_cases()
+    cases = int(len(features)*fraction)
+    features = features[:cases]
+    labels = labels[:cases]
+    for i in range(len(features)):
+        for j in range(len(features[0])):
+            features[i][j] /= 255
+
+    return [[features[i], [labels[i]]] for i in range(len(features))]
+
 ''' Old Evaluation Procedure (for Autumn 2015) that involved "Blind Testing".
 
 # ****** Demo Necessities ******
