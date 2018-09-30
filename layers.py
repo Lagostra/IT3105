@@ -52,8 +52,8 @@ class DenseSequence:
 
 
 class Dropout:
-    def __init__(self, keep_prob=0.8):
-        self.keep_prob = keep_prob
+    def __init__(self, drop_prob=0.2):
+        self.keep_prob = 1 - drop_prob
 
     def execute(self, x):
         return tf.nn.dropout(x, self.keep_prob)
