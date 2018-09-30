@@ -181,8 +181,11 @@ def load_mnist_dataset(fraction=1.0):
     for i in range(len(features)):
         for j in range(len(features[0])):
             features[i][j] /= 255
+        label = [0] * 10
+        label[labels[i]] = 1
+        labels[i] = label
 
-    return [[features[i], [labels[i]]] for i in range(len(features))]
+    return [[features[i], labels[i]] for i in range(len(features))]
 
 ''' Old Evaluation Procedure (for Autumn 2015) that involved "Blind Testing".
 
