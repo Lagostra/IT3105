@@ -10,15 +10,19 @@ _activation_functions = {
 
 class Dense:
 
-    def __init__(self, input_size, output_size, activation_function='relu', name=None):
+    def __init__(self, input_size, output_size, activation_function='relu', name=None, weight_bounds=(0, 1)):
         self.input_shape = (input_size,)
         self.output_shape = (output_size,)
         self.name = name
         weight_name = name + '_weights' if name else None
         bias_name = name + '_bias' if name else None
 
-        self.weights = tf.Variable(tf.random_uniform([input_size, output_size]), name=bias_name)
-        self.bias = tf.Variable(tf.random_uniform([output_size]), name=weight_name)
+        self.weights = tf.Variable(tf.random_uniform([input_size, output_size],
+                                                     minval=weight_bounds[0], maxval=weight_bounds[1]),
+                                   name=bias_name,)
+        self.bias = tf.Variable(tf.random_uniform([output_size],
+                                                  minval=weight_bounds[0], maxval=weight_bounds[1]),
+                                name=weight_name)
         self.activation_function = _activation_functions[activation_function] if activation_function else None
 
     def execute(self, x):
@@ -28,7 +32,7 @@ class Dense:
 
 
 class DenseSequence:
-    def __init__(self, layer_sizes, activation_function='relu', name=None):
+    def __init__(self, layer_sizes, activation_function='relu', name=None, weight_bounds=(0, 1)):
         self.input_shape = (layer_sizes[0],)
         self.output_shape = (layer_sizes[-1],)
         self.name = name
@@ -38,7 +42,8 @@ class DenseSequence:
             if name:
                 layer_name = name + str(i + 1)
 
-            self.layers.append(Dense(layer_sizes[i], layer_sizes[i+1], activation_function, name=layer_name))
+            self.layers.append(Dense(layer_sizes[i], layer_sizes[i+1], activation_function,
+                                     name=layer_name, weight_bounds=weight_bounds))
 
     def execute(self, x):
         for layer in self.layers:

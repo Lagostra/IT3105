@@ -9,7 +9,7 @@ layers = [
 
 network = Network(
     layers,
-    tft.gen_symvect_cases(101, 2000),
+    tft.gen_symvect_dataset(101, 2000),
     minibatch_size=100,
     steps=2000,
     loss_function='mse',
