@@ -48,6 +48,17 @@ def input_target_split(data):
     return inputs, targets
 
 
+def accuracy(targets, predictions):
+    n_correct = 0
+    for case in zip(targets, predictions):
+        correct = True
+        for item in zip(case[0], case[1]):
+            correct = correct and item[0] == item[1]
+        n_correct += int(correct)
+    # n_correct = sum(map(lambda x: int(x[0] == x[1]), zip(targets, predictions)))
+    return n_correct / len(targets)
+
+
 class Network:
     inputs = None
     targets = None
@@ -113,14 +124,7 @@ class Network:
         inputs = np.array(inputs)
         predictions = self.predict(inputs)
 
-        n_correct = 0
-        for case in zip(targets, predictions):
-            correct = True
-            for item in zip(case[0], case[1]):
-                correct = correct and item[0] == item[1]
-            n_correct += int(correct)
-        # n_correct = sum(map(lambda x: int(x[0] == x[1]), zip(targets, predictions)))
-        return n_correct / len(targets)
+        return accuracy(targets, predictions)
 
     def train(self, plot_results=False):
         if not self.session:
@@ -144,14 +148,15 @@ class Network:
             _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
 
             if i % 50 == 0:
-                print('[Step {}] Loss: {}'.format(i, l))
-
                 try:
                     iter(l)
                 except TypeError:
-                    errors.append(l)
+                    error = l
                 else:
-                    errors.append(sum(l))
+                    error = sum(l)
+
+                errors.append(error)
+                print('[Step {}] Error: {}'.format(i, error))
 
             if i % self.validation_interval == 0 and len(validate_set):
                 validate_accuracies.append(self.calculate_accuracy(validate_set))
@@ -166,3 +171,27 @@ class Network:
             fig.legend(['Minibatch error', 'Validation accuracy'])
             ax1.set_xlabel('Step')
             plt.show()
+
+        print()
+
+    def test(self):
+        _, _, test_set = self.data
+
+        inputs, targets = input_target_split(test_set)
+
+        feed_dict = {
+            self.inputs: inputs,
+            self.targets: targets
+        }
+
+        predictions, error = self.session.run([self.outputs, self.loss], feed_dict=feed_dict)
+
+        try:
+            iter(error)
+        except TypeError:
+            pass
+        else:
+            error = sum(error)
+
+        print("[Test set] Error: {:.2f}  Accuracy: {:.2f}%".format(error, accuracy(targets, predictions)*100))
+        print()

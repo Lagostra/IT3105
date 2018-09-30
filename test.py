@@ -13,3 +13,4 @@ network = Network(layers, tft.gen_all_one_hot_cases(10), minibatch_size=8, steps
 
 network.build()
 network.train(plot_results=True)
+network.test()
