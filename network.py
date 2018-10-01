@@ -17,7 +17,7 @@ _optimizers = {
 _loss_functions = {
     'mse': lambda y, x: tf.reduce_mean(tf.square(y - x)),
     'mae': tf.losses.absolute_difference,
-    'cross_entropy': lambda y, x: tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x),
+    'cross_entropy': lambda y, x: tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x)),
 }
 
 
@@ -147,19 +147,16 @@ class Network:
 
             _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
 
-            if i % 50 == 0:
-                try:
-                    iter(l)
-                except TypeError:
-                    error = l
-                else:
-                    error = sum(l)
+            # self.session.probe_stream.add_summary(summary, global_step=i)
 
-                errors.append(error)
-                print('[Step {}] Error: {}'.format(i, error))
+            if i % 50 == 0:
+                errors.append(l)
+                print('[Step {}] Error: {}'.format(i, l))
 
             if i % self.validation_interval == 0 and len(validate_set):
-                validate_accuracies.append(self.calculate_accuracy(validate_set))
+                acc = self.calculate_accuracy(validate_set)
+                validate_accuracies.append(acc)
+                #tf.summary.scalar('Validation accuracy', acc)
 
         if plot_results:
             fig, ax1 = plt.subplots()
