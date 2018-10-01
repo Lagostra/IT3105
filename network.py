@@ -209,3 +209,23 @@ class Network:
 
         print("[Test set] Error: {:.2f}  Accuracy: {:.2f}%".format(error, accuracy(targets, predictions)*100))
         print()
+
+    def visualize_weights(self, weight_layers=[], bias_layers=[]):
+        for l in weight_layers:
+            if l < len(self.layers):
+                layer = self.layers[l]
+                name = layer.name if layer.name else 'Layer ' + str(l)
+                fig, ax = plt.subplots()
+                ax.set_title(name + ' weights', pad=30)
+                im = ax.matshow(self.session.run(layer.weights))
+                fig.colorbar(im)
+                plt.show()
+
+        for l in bias_layers:
+            if l < len(self.layers):
+                layer = self.layers[l]
+                name = layer.name if layer.name else 'Layer ' + str(l)
+                plt.title(name + ' bias')
+                bias = self.session.run(layer.bias)
+                plt.bar(range(len(bias)), bias)
+                plt.show()
