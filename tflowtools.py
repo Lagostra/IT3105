@@ -12,6 +12,20 @@ import numpy.random as NPR
 # ****** SESSION HANDLING *******
 
 def gen_initialized_session(dir='probeview'):
+    max_n = 0
+    try:
+        files = os.listdir(dir)
+        for f in files:
+            if f.startswith('run'):
+                try:
+                    n = int(f[3:])
+                    max_n = max(n, max_n)
+                except ValueError:
+                    pass
+    except FileNotFoundError:
+        pass
+    dir += '/run' + str(max_n + 1)
+
     sess = tf.Session()
     sess.probe_stream = viewprep(sess,dir=dir)  # Create a probe stream and attach to the session
     sess.viewdir = dir  # add a second slot, viewdir, to the session
