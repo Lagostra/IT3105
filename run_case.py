@@ -7,7 +7,7 @@ from layers import Dense, DenseSequence, Dropout
 
 
 def run_case(n, hyperparameter_file='hyperparameters.csv'):
-    params = pd.read_csv(hyperparameter_file).loc[n]
+    params = pd.read_csv(hyperparameter_file).loc[n - 1]
 
     output_functions = params['Output_functions']
     try:
@@ -35,4 +35,4 @@ def run_case(n, hyperparameter_file='hyperparameters.csv'):
     network.test()
 
 
-run_case(2)
+run_case(6)
