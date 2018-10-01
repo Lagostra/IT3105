@@ -65,6 +65,8 @@ class Network:
     outputs = None
     training_op = None
     loss = None
+    accuracy = None
+    summaries = []
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
@@ -108,8 +110,17 @@ class Network:
             for f in self.output_functions:
                 self.outputs = f(self.outputs)
 
+        self.accuracy = tf.metrics.accuracy(self.targets, self.outputs)[1]
+
         self.loss = self.loss_function(self.targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
+
+        self.add_summaries()
+
+    def add_summaries(self):
+        with tf.name_scope('performance'):
+            self.summaries.append(tf.summary.scalar('loss', self.loss))
+            self.summaries.append(tf.summary.scalar('accuracy', self.accuracy))
 
     def predict(self, inputs):
         feed_dict = {
@@ -135,6 +146,8 @@ class Network:
         errors = []
         validate_accuracies = []
 
+        summaries = tf.summary.merge(self.summaries)
+
         for i in range(1, self.steps + 1):
             minibatch = random.sample(list(train_set), self.minibatch_size)
 
@@ -145,18 +158,22 @@ class Network:
                 self.targets: targets
             }
 
-            _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
+            _, l, summary = self.session.run([self.training_op, self.loss, summaries], feed_dict=feed_dict)
 
-            # self.session.probe_stream.add_summary(summary, global_step=i)
+            self.session.probe_stream.add_summary(summary, global_step=i)
 
             if i % 50 == 0:
                 errors.append(l)
                 print('[Step {}] Error: {}'.format(i, l))
 
             if i % self.validation_interval == 0 and len(validate_set):
-                acc = self.calculate_accuracy(validate_set)
+                inputs, targets = input_target_split(validate_set)
+                feed_dict = {
+                    self.inputs: inputs,
+                    self.targets: targets
+                }
+                acc = self.session.run([self.accuracy], feed_dict=feed_dict)
                 validate_accuracies.append(acc)
-                #tf.summary.scalar('Validation accuracy', acc)
 
         if plot_results:
             fig, ax1 = plt.subplots()
