@@ -110,7 +110,7 @@ class Network:
             for f in self.output_functions:
                 self.outputs = f(self.outputs)
 
-        self.accuracy = tf.metrics.accuracy(self.targets, self.outputs)[1]
+        self.accuracy = tf.metrics.accuracy(self.targets, self.outputs, name='accuracy')
 
         self.loss = self.loss_function(self.targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
@@ -120,7 +120,7 @@ class Network:
     def add_summaries(self):
         with tf.name_scope('performance'):
             self.summaries.append(tf.summary.scalar('loss', self.loss))
-            self.summaries.append(tf.summary.scalar('accuracy', self.accuracy))
+            self.summaries.append(tf.summary.scalar('accuracy', self.accuracy[0]))
 
     def predict(self, inputs):
         feed_dict = {
@@ -167,12 +167,7 @@ class Network:
                 print('[Step {}] Error: {}'.format(i, l))
 
             if i % self.validation_interval == 0 and len(validate_set):
-                inputs, targets = input_target_split(validate_set)
-                feed_dict = {
-                    self.inputs: inputs,
-                    self.targets: targets
-                }
-                acc = self.session.run([self.accuracy], feed_dict=feed_dict)
+                acc = self.evaluate(validate_set)[1]
                 validate_accuracies.append(acc)
 
         if plot_results:
@@ -188,6 +183,11 @@ class Network:
 
         print()
 
+    def reset_accuracy(self):
+        running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="accuracy")
+        running_vars_initializer = tf.variables_initializer(var_list=running_vars)
+        self.session.run(running_vars_initializer)
+
     def evaluate(self, data_set):
         inputs, targets = input_target_split(data_set)
 
@@ -196,7 +196,9 @@ class Network:
             self.targets: targets
         }
 
-        acc, error = self.session.run([self.accuracy, self.loss], feed_dict=feed_dict)
+        self.reset_accuracy()
+        _, error = self.session.run([self.accuracy[1], self.loss], feed_dict=feed_dict)
+        acc = self.session.run([self.accuracy[0]])[0]
         return error, acc
 
     def test(self, include_train_set=True):
