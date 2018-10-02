@@ -188,26 +188,29 @@ class Network:
 
         print()
 
-    def test(self):
-        _, _, test_set = self.data
-
-        inputs, targets = input_target_split(test_set)
+    def evaluate(self, data_set):
+        inputs, targets = input_target_split(data_set)
 
         feed_dict = {
             self.inputs: inputs,
             self.targets: targets
         }
 
-        predictions, error = self.session.run([self.outputs, self.loss], feed_dict=feed_dict)
+        acc, error = self.session.run([self.accuracy, self.loss], feed_dict=feed_dict)
+        return error, acc
 
-        try:
-            iter(error)
-        except TypeError:
-            pass
-        else:
-            error = sum(error)
+    def test(self, include_train_set=True):
+        train_set, _, test_set = self.data
 
-        print("[Test set] Error: {:.2f}  Accuracy: {:.2f}%".format(error, accuracy(targets, predictions)*100))
+        if include_train_set:
+            train_error, train_acc = self.evaluate(train_set)
+
+        test_error, test_acc = self.evaluate(test_set)
+
+        if include_train_set:
+            print("[Train set] Error: {:.2f}  Accuracy: {:.2f}%".format(train_error, train_acc * 100))
+
+        print("[Test set] Error: {:.2f}  Accuracy: {:.2f}%".format(test_error, test_acc*100))
         print()
 
     def visualize_weights(self, weight_layers=[], bias_layers=[]):
