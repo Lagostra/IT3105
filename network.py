@@ -70,7 +70,7 @@ class Network:
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
-                 validation_interval=50, session=None, output_functions=None):
+                 validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False):
 
         if type(layers[0]) == int:
             self.layers = []
@@ -86,6 +86,7 @@ class Network:
         self.loss_function = _loss_functions[loss_function]
         self.validation_interval = validation_interval
         self.session = session
+        self.one_hot_encode_target = one_hot_encode_target
 
         if output_functions == 'argmax_one_hot':
             self.output_functions = [
@@ -99,7 +100,10 @@ class Network:
 
     def build(self):
         self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape, name='inputs')
-        self.targets = tf.placeholder('float', shape=(None,) + self.layers[-1].output_shape, name='targets')
+        target_shape = (1,) if self.one_hot_encode_target else self.layers[-1].output_shape
+        targets = self.targets = tf.placeholder('float', shape=(None,) + target_shape, name='targets')
+        if self.one_hot_encode_target:
+            targets = tf.squeeze(tf.one_hot(tf.cast(self.targets, 'int32'), self.layers[-1].output_shape[0], axis=1))
         x = self.inputs
 
         for layer in self.layers:
@@ -110,9 +114,9 @@ class Network:
             for f in self.output_functions:
                 self.outputs = f(self.outputs)
 
-        self.accuracy = tf.metrics.accuracy(self.targets, self.outputs, name='accuracy')
+        self.accuracy = tf.metrics.accuracy(targets, self.outputs, name='accuracy')
 
-        self.loss = self.loss_function(self.targets, x)
+        self.loss = self.loss_function(targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
         self.add_summaries()
