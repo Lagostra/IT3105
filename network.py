@@ -21,7 +21,7 @@ _loss_functions = {
 }
 
 
-def load_data(data_source, case_fraction, validation_fraction, test_fraction):
+def load_data(data_source, case_fraction, validation_fraction, test_fraction, shuffle=True):
     if type(data_source) == str:
         data = np.loadtxt(data_source, delimiter=',')
     else:
@@ -30,6 +30,9 @@ def load_data(data_source, case_fraction, validation_fraction, test_fraction):
     data = data[:int(len(data) * case_fraction)]
     train_end = int(len(data) * (1 - max(validation_fraction, 0) - max(test_fraction, 0)))
     validate_end = int(len(data) * (1 - max(test_fraction, 0)))
+
+    if shuffle:
+        random.shuffle(data)
 
     train = data[:train_end]
     validate = data if validation_fraction == -1 else data[train_end:validate_end]
