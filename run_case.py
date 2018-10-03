@@ -9,6 +9,12 @@ from layers import Dense, DenseSequence, Dropout
 def run_case(n, hyperparameter_file='hyperparameters.csv'):
     params = pd.read_csv(hyperparameter_file).loc[n - 1]
 
+    dataset = params['Dataset']
+    try:
+        dataset = eval(dataset)
+    except NameError:
+        pass
+
     output_functions = params['Output_functions']
     try:
         output_functions = eval(output_functions)
@@ -17,7 +23,7 @@ def run_case(n, hyperparameter_file='hyperparameters.csv'):
 
     network = Network(
         eval(params['Network']),
-        eval(params['Dataset']),
+        dataset,
         minibatch_size=int(params['Minibatch_size']),
         steps=int(params['Steps']),
         loss_function=params['Loss_function'],
@@ -27,14 +33,15 @@ def run_case(n, hyperparameter_file='hyperparameters.csv'):
         validation_interval=int(params['validation_interval']),
         test_fraction=float(params['test_fraction']),
         learning_rate=float(params['learning_rate']),
-        optimizer=params['optimizer']
+        optimizer=params['optimizer'],
+        one_hot_encode_target=bool(params['one_hot_encode_target'])
     )
 
     network.build()
     network.train()
     network.test()
 
-    network.visualize_weights(weight_layers=[0, 1], bias_layers=[0, 1])
+    # network.visualize_weights(weight_layers=[0, 1], bias_layers=[0, 1])
 
 
-run_case(3)
+run_case(10)
