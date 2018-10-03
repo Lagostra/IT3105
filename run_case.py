@@ -44,4 +44,4 @@ def run_case(n, hyperparameter_file='hyperparameters.csv'):
     # network.visualize_weights(weight_layers=[0, 1], bias_layers=[0, 1])
 
 
-run_case(10)
+run_case(3)

@@ -9,6 +9,7 @@ _activation_functions = {
 
 
 class Dense:
+    output = None
 
     def __init__(self, input_size, output_size, activation_function='relu', name=None, weight_bounds=(0, 1)):
         self.input_shape = (input_size,)
@@ -27,11 +28,15 @@ class Dense:
 
     def execute(self, x):
         if self.activation_function:
-            return self.activation_function(tf.add(tf.matmul(x, self.weights), self.bias), name=self.name)
-        return tf.add(tf.matmul(x, self.weights), self.bias, name=self.name)
+            self.output = self.activation_function(tf.add(tf.matmul(x, self.weights), self.bias), name=self.name)
+        else:
+            self.output = tf.add(tf.matmul(x, self.weights), self.bias, name=self.name)
+        return self.output
 
 
 class DenseSequence:
+    output = None
+
     def __init__(self, layer_sizes, activation_function='relu', name=None, weight_bounds=(0, 1)):
         self.input_shape = (layer_sizes[0],)
         self.output_shape = (layer_sizes[-1],)
@@ -48,12 +53,16 @@ class DenseSequence:
     def execute(self, x):
         for layer in self.layers:
             x = layer.execute(x)
-        return x
+        self.output = x
+        return self.output
 
 
 class Dropout:
+    output = None
+
     def __init__(self, drop_prob=0.2):
         self.keep_prob = 1 - drop_prob
 
     def execute(self, x):
-        return tf.nn.dropout(x, self.keep_prob)
+        self.output = tf.nn.dropout(x, self.keep_prob)
+        return self.output
