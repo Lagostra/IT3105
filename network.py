@@ -244,39 +244,27 @@ class Network:
                 plt.bar(range(len(bias)), bias)
                 plt.show()
 
-    def mapping_test(self, cases, mapped_layers):
-        hists = []
-        layer_output_tensors = []
-        names = []
-        for l in mapped_layers:
-            if l >= len(self.layers):
-                continue
-
-            layer = self.layers[l]
-            layer_output_tensors.append(layer.output)
-            name = layer.name if layer.name else 'layer' + str(l)
-            names.append(name)
-            with tf.name_scope('activation_histograms'):
-                hists.append(tf.summary.histogram(name, layer.output))
-
-        summaries = tf.summary.merge(hists)
+    def mapping_test(self, cases, mapped_layers=[], dendrogram_layers=[]):
+        layer_output_tensors = [l.output for l in self.layers]
+        layer_names = [l.name if l.name else 'layer' + str(i) for i, l in enumerate(self.layers)]
 
         if type(cases) == int:
             _, _, test_set = self.data
             cases = random.sample(list(test_set), cases)
 
         inputs, _ = input_target_split(cases)
+        string_inputs = list(map(tft.bits_to_str, inputs))
         feed_dict = {
             self.inputs: inputs
         }
 
-        predictions, summary, *layer_outputs = self.session.run([self.raw_outputs, summaries] + layer_output_tensors,
-                                                                feed_dict=feed_dict)
-
-        self.session.probe_stream.add_summary(summary)
+        predictions, *layer_outputs = self.session.run([self.raw_outputs] + layer_output_tensors, feed_dict=feed_dict)
 
         tft.hinton_plot(np.array(inputs), title='inputs')
-        for i in range(len(layer_outputs)):
-            tft.hinton_plot(np.array(layer_outputs[i]), title=names[i])
+        for i in mapped_layers:
+            tft.hinton_plot(np.array(layer_outputs[i]), title=layer_names[i])
+
+        for i in dendrogram_layers:
+            tft.dendrogram(layer_outputs[i], string_inputs, title=layer_names[i] + ' dendrogram')
 
         tft.hinton_plot(np.array(predictions), title='outputs')
