@@ -1,7 +1,7 @@
 Dataset,Network,Minibatch_size,Steps,Loss_function,Output_functions,case_fraction,validation_fraction,test_fraction,learning_rate,optimizer,validation_interval,one_hot_encode_target
 "tft.gen_all_parity_cases(10, True)","[10, 50, 30, 2]",50,4500,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,False
 "tft.gen_symvect_dataset(101, 2000)","[DenseSequence([101, 50, 1], weight_bounds=(-1, 1), activation_function='sigmoid')]",50,1500,mse,[tf.round],1.0,0.1,0.1,0.01,adam,50,False
-tft.gen_all_one_hot_cases(50),"[50, 12, 50]",25,500,cross_entropy,argmax_one_hot,1.0,-1,-1,0.01,adam,5,False
+tft.gen_all_one_hot_cases(50),"[50, 6, 50]",25,250,cross_entropy,argmax_one_hot,1.0,-1,-1,0.01,adam,5,False
 "tft.gen_vector_count_cases(500, 15)","[15, 12, 16]",100,6500,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,False
 "tft.gen_segmented_vector_cases(25, 1000, 0, 8)","[25, 100, 10, 9]",100,10000,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,False
 load_mnist_dataset(0.1),"[784, 1024, 64, 10]",100,5000,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,False

@@ -66,6 +66,7 @@ class Network:
     inputs = None
     targets = None
     outputs = None
+    raw_outputs = None
     training_op = None
     loss = None
     accuracy = None
@@ -112,7 +113,7 @@ class Network:
         for layer in self.layers:
             x = layer.execute(x)
 
-        self.outputs = x
+        self.outputs = self.raw_outputs = x
         if self.output_functions:
             for f in self.output_functions:
                 self.outputs = f(self.outputs)
@@ -241,3 +242,39 @@ class Network:
                 bias = self.session.run(layer.bias)
                 plt.bar(range(len(bias)), bias)
                 plt.show()
+
+    def mapping_test(self, num_cases, mapped_layers):
+        hists = []
+        layer_output_tensors = []
+        names = []
+        for l in mapped_layers:
+            if l >= len(self.layers):
+                continue
+
+            layer = self.layers[l]
+            layer_output_tensors.append(layer.output)
+            name = layer.name if layer.name else 'layer' + str(l)
+            names.append(name)
+            with tf.name_scope('activation_histograms'):
+                hists.append(tf.summary.histogram(name, layer.output))
+
+        summaries = tf.summary.merge(hists)
+
+        _, _, test_set = self.data
+        cases = random.sample(list(test_set), num_cases)
+
+        inputs, _ = input_target_split(cases)
+        feed_dict = {
+            self.inputs: inputs
+        }
+
+        predictions, summary, *layer_outputs = self.session.run([self.raw_outputs, summaries] + layer_output_tensors,
+                                                                feed_dict=feed_dict)
+
+        self.session.probe_stream.add_summary(summary)
+
+        tft.hinton_plot(np.array(inputs), title='inputs')
+        for i in range(len(layer_outputs)):
+            tft.hinton_plot(np.array(layer_outputs[i]), title=names[i])
+
+        tft.hinton_plot(np.array(predictions), title='outputs')

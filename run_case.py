@@ -41,7 +41,9 @@ def run_case(n, hyperparameter_file='hyperparameters.csv'):
     network.train()
     network.test()
 
-    # network.visualize_weights(weight_layers=[0, 1], bias_layers=[0, 1])
+    network.mapping_test(10, [0])
+
+    network.visualize_weights(weight_layers=[0, 1], bias_layers=[0, 1])
 
 
 run_case(3)
