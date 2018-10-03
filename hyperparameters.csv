@@ -9,4 +9,4 @@ data/wine.txt,"[11, 8, 6]",50,10000,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.0
 data/glass.txt,"[9, 15, 6]",50,3500,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,True
 data/yeast.txt,"[8, 20, 10]",50,3500,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,True
 data/adult.txt,"[14, 70, 2]",50,7000,cross_entropy,argmax_one_hot,1.0,0.1,0.1,0.01,adam,50,True
-tft.gen_all_one_hot_cases(8),"[8, 3, 8]",8,250,cross_entropy,argmax_one_hot,1.0,-1,-1,0.01,adam,5,False
+tft.gen_all_one_hot_cases(8),"[8, 3, 8]",8,25000,cross_entropy,argmax_one_hot,1.0,-1,-1,0.01,adam,5,False
