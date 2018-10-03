@@ -228,11 +228,12 @@ class Network:
             if l < len(self.layers):
                 layer = self.layers[l]
                 name = layer.name if layer.name else 'Layer ' + str(l)
-                fig, ax = plt.subplots()
-                ax.set_title(name + ' weights', pad=30)
-                im = ax.matshow(self.session.run(layer.weights))
-                fig.colorbar(im)
-                plt.show()
+                tft.hinton_plot(np.array(self.session.run(layer.weights)), title=name + ' weights')
+                # fig, ax = plt.subplots()
+                # ax.set_title(name + ' weights', pad=30)
+                # im = ax.matshow(self.session.run(layer.weights))
+                # fig.colorbar(im)
+                # plt.show()
 
         for l in bias_layers:
             if l < len(self.layers):
@@ -243,7 +244,7 @@ class Network:
                 plt.bar(range(len(bias)), bias)
                 plt.show()
 
-    def mapping_test(self, num_cases, mapped_layers):
+    def mapping_test(self, cases, mapped_layers):
         hists = []
         layer_output_tensors = []
         names = []
@@ -260,8 +261,9 @@ class Network:
 
         summaries = tf.summary.merge(hists)
 
-        _, _, test_set = self.data
-        cases = random.sample(list(test_set), num_cases)
+        if type(cases) == int:
+            _, _, test_set = self.data
+            cases = random.sample(list(test_set), cases)
 
         inputs, _ = input_target_split(cases)
         feed_dict = {
