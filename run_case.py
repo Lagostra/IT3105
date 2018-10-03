@@ -7,6 +7,12 @@ from layers import Dense, DenseSequence, Dropout
 
 
 def run_case(n, hyperparameter_file='hyperparameters.csv'):
+    """
+    Runs the dataset and network defined on line n in the given hyperparameter file.
+    :param n: The line of the scenario.
+    :param hyperparameter_file: A CSV file containing references to data sets and hyperparameters.
+    :return:
+    """
     params = pd.read_csv(hyperparameter_file).loc[n - 1]
 
     dataset = params['Dataset']

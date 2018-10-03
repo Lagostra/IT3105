@@ -1,3 +1,7 @@
+"""
+Contains an abstraction of a neural network, allowing the user to quickly create a custom NN architecture,
+and run a set of standard operations such as training, evaluation and mapping tests.
+"""
 import tensorflow as tf
 import numpy as np
 import random
@@ -22,17 +26,27 @@ _loss_functions = {
 
 
 def load_data(data_source, case_fraction, validation_fraction, test_fraction, shuffle=True):
+    """
+    Loads data from given data source, and splits it into train, validate and test sets.
+    :param data_source: The data source, either given as a string to a CSV file, or as an array of cases, each with
+    a set of features and a label.
+    :param case_fraction: The fraction of the total data that is to be used.
+    :param validation_fraction: The fraction of the chosen data to be used for the validation set.
+    :param test_fraction: The fraction of the chosen data to be used for the test set.
+    :param shuffle: Controls whether the data is shuffled before division or not. Default: True
+    :return: A tuple containing the train, validate and test sets.
+    """
     if type(data_source) == str:
         data = np.loadtxt(data_source, delimiter=',')
     else:
         data = data_source
 
+    if shuffle:
+        random.shuffle(data)
+
     data = data[:int(len(data) * case_fraction)]
     train_end = int(len(data) * (1 - max(validation_fraction, 0) - max(test_fraction, 0)))
     validate_end = int(len(data) * (1 - max(test_fraction, 0)))
-
-    if shuffle:
-        random.shuffle(data)
 
     train = data[:train_end]
     validate = data if validation_fraction == -1 else data[train_end:validate_end]
@@ -42,6 +56,12 @@ def load_data(data_source, case_fraction, validation_fraction, test_fraction, sh
 
 
 def input_target_split(data):
+    """
+    Splits a data set into inputs and targets. Works on both data sets where the cases consists of separate arrays
+    of inputs and targets, and data sets where each case is a single array, with the last element being the label.
+    :param data: The data set that will be split.
+    :return: A tuple containing arrays of the inputs and targets, respectively.
+    """
     if len(data[0]) == 2:
         inputs = list(map(lambda x: x[0], data))
         targets = list(map(lambda x: x[1], data))
@@ -52,6 +72,12 @@ def input_target_split(data):
 
 
 def accuracy(targets, predictions):
+    """
+    Calculates the accuracy of a model, given targets and predictions.
+    :param targets: The correct target values.
+    :param predictions: The predictions made by a model.
+    :return: The accuracy of the model as a decimal number, with 1.0 being perfect accuracy.
+    """
     n_correct = 0
     for case in zip(targets, predictions):
         correct = True
@@ -63,6 +89,10 @@ def accuracy(targets, predictions):
 
 
 class Network:
+    """
+    An abstraction of a neural network, allowing the user to quickly create a custom NN architecture,
+    and run a set of standard operations such as training, evaluation and mapping tests.
+    """
     inputs = None
     targets = None
     outputs = None
@@ -75,6 +105,31 @@ class Network:
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
                  validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False):
+        """
+        Instantiates a new network.
+        :param layers: Specification of the network's layers. Can either be an array of numbers, interpreted as number
+        of nodes in a sequence of dense layers, or a sequence of layers as given in the layers module.
+        :param data_source: The data source, either as a path to a CSV file, or as a list of cases.
+        :param learning_rate: The learning rate used by the neural network optimizer. Default: 0.01
+        :param steps: The number of training steps to be carried out. Default: 1000
+        :param minibatch_size: The number of cases included in each minibatch during training. Default: 100
+        :param optimizer: The optimizer used when training the network ['adam', 'adadelta', 'adagrad',
+                            'gradient_descent', 'rmsprop']. Default: 'adam'
+        :param loss_function: The loss function used to evaluate the performance of the network
+                                ['mse', 'mae', 'cross_entropy']. Default: 'mse'
+        :param case_fraction: The fraction of the data set to be used for training, validation and testing sets.
+                                Default: 1.0
+        :param validation_fraction: The fraction of the data to be used for validation. Default: 0.1
+        :param test_fraction: The fraction of the data to be used for testing. Default: 0.2
+        :param validation_interval: The interval, in number of minibatches run through the network, between each
+                                    validation test. Default: 50
+        :param session: A tf.session to be used by the network. If None, a new one is automatically created.
+                        Default: None
+        :param output_functions: A list of output_functions to be applied as a final stage in the network. Not applied
+                                during training. Default: None
+        :param one_hot_encode_target: If True, the target will be converted to a one_hot_vector, with length based on
+                                        the output size of the network. Requires an integer target. Default: False
+        """
 
         if type(layers[0]) == int:
             self.layers = []
@@ -103,6 +158,9 @@ class Network:
         self.data = load_data(data_source, case_fraction, validation_fraction, test_fraction)
 
     def build(self):
+        """
+        Builds the computation graph of the network. Must be called before training is carried out.
+        """
         self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape, name='inputs')
         target_shape = (1,) if self.one_hot_encode_target else self.layers[-1].output_shape
         targets = self.targets = tf.placeholder('float', shape=(None,) + target_shape, name='targets')
@@ -126,11 +184,19 @@ class Network:
         self.add_summaries()
 
     def add_summaries(self):
+        """
+        Adds summaries for loss and accuracy to the graph.
+        """
         with tf.name_scope('performance'):
             self.summaries.append(tf.summary.scalar('loss', self.loss))
             self.summaries.append(tf.summary.scalar('accuracy', self.accuracy[0]))
 
     def predict(self, inputs):
+        """
+        Makes predictions for the provided inputs using the network.
+        :param inputs: Input vectors used as a base for predictions.
+        :return: A set of output vectors.
+        """
         feed_dict = {
             self.inputs: inputs
         }
@@ -139,6 +205,11 @@ class Network:
         return result
 
     def calculate_accuracy(self, data_set):
+        """
+        Calculates the accuracy of the network over a given data set by creating predictions and comparing to targets.
+        :param data_set: The data set to be used for accuracy evaluation.
+        :return: Accuracy as a decimal number.
+        """
         inputs, targets = input_target_split(data_set)
         inputs = np.array(inputs)
         predictions = self.predict(inputs)
@@ -146,6 +217,10 @@ class Network:
         return accuracy(targets, predictions)
 
     def train(self, plot_results=False):
+        """
+        Trains the network using provided data and hyperparameters.
+        :param plot_results: If True, a plot of train set errors and validation accuracy will be created upon finish.
+        """
         if not self.session:
             self.session = tft.gen_initialized_session()
 
@@ -192,11 +267,19 @@ class Network:
         print()
 
     def reset_accuracy(self):
+        """
+        Resets the TensorFlow accuracy counter.
+        """
         running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="accuracy")
         running_vars_initializer = tf.variables_initializer(var_list=running_vars)
         self.session.run(running_vars_initializer)
 
     def evaluate(self, data_set):
+        """
+        Evaluates the loss and accuracy of a data set by using graph operations.
+        :param data_set: The data set that is evaluated.
+        :return: A tuple containing the error and accuracy over the data set.
+        """
         inputs, targets = input_target_split(data_set)
 
         feed_dict = {
@@ -210,6 +293,11 @@ class Network:
         return error, acc
 
     def test(self, include_train_set=True):
+        """
+        Carries out the test stage, evaluating loss and accuracy over the test set and (optionally) the entire
+        training set.
+        :param include_train_set: If true, testing will also be carried out on the training set as a whole.
+        """
         train_set, _, test_set = self.data
 
         if include_train_set:
@@ -224,6 +312,11 @@ class Network:
         print()
 
     def visualize_weights(self, weight_layers=[], bias_layers=[]):
+        """
+        Creates visualizations of the weights and biases for the chosen layers. The chosen layers must be dense layers.
+        :param weight_layers: A list of indexes to the layers for which weights are to be visualized.
+        :param bias_layers: A list of indexes to the layers for which biases are to be visualized.
+        """
         for l in weight_layers:
             if l < len(self.layers):
                 layer = self.layers[l]
@@ -245,6 +338,14 @@ class Network:
                 plt.show()
 
     def mapping_test(self, cases, mapped_layers=[], dendrogram_layers=[]):
+        """
+        Carries out a mapping tests, creating visualizations of activation levels for chosen layers. Input and output
+        activations are always visualized.
+        :param cases: Either the number of cases to be mapped given as an integer, or a list of cases to be mapped. If
+                        an integer is given, cases will be selected at random from the test set.
+        :param mapped_layers: A list of indexes to the layers that activation visualizations should be produced for.
+        :param dendrogram_layers: A list of indexes to the layers that dendrograms should be produced for.
+        """
         layer_output_tensors = [l.output for l in self.layers]
         layer_names = [l.name if l.name else 'layer' + str(i) for i, l in enumerate(self.layers)]
 
