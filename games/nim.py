@@ -13,7 +13,7 @@ class Nim:
 
     def get_moves(self, state):
         """
-        Returns a list of possible moves given a state.
+        Returns a list of possible moves given a state. Should always be given in same order.
         :param state: The current state of the game.
         :return: A list of moves and outcome states. Each item is a tuple consisting of a tuple representing the move,
                 and a tuple representing the outcome state. The move has the form
