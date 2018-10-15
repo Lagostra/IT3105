@@ -48,7 +48,7 @@ class Nim:
         return n_pieces - n_pieces_removed, int(not player)
 
     def get_move_string(self, initial_state, move):
-        return "Player " + str(move[1]) + " selects " + str(move[0]) + " stones. Remaining stones: " + \
+        return "Player " + str(move[1] + 1) + " selects " + str(move[0]) + " stones. Remaining stones: " + \
                str(initial_state[0] - move[0])
 
     def evaluate_state(self, state):
