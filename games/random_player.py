@@ -12,5 +12,8 @@ class RandomPlayer:
         self.state = self.game.get_outcome_state(self.state, move)
         return move
 
+    def set_state(self, state):
+        self.state = state
+
     def update_state(self, move):
         self.state = self.game.get_outcome_state(self.state, move)

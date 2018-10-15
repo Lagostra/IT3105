@@ -7,7 +7,7 @@ game = None
 
 class MCTS:
 
-    def __init__(self, game_, usa_metric=uct, simulations=200, default_policy=select_random(), state=None):
+    def __init__(self, game_, usa_metric=uct, simulations=200, default_policy=select_random, state=None):
         global game
         game = game_
         state = state if state else game.get_initial_state()
@@ -15,6 +15,9 @@ class MCTS:
         self.usa_metric = usa_metric
         self.simulations = simulations
         self.default_policy = default_policy
+
+    def set_state(self, state):
+        self.root = TreeNode(state)
 
     def update_state(self, move):
         """
@@ -32,8 +35,8 @@ class MCTS:
 
     def select_edge(self):
         for i in range(self.simulations):
-            node = self.traverse(self.root)
-            node, traversed_edges = self.expand(node)
+            node, traversed_edges = self.traverse(self.root)
+            node = self.expand(node)
             score = self.rollout(node)
 
             for edge in traversed_edges:
@@ -46,10 +49,10 @@ class MCTS:
         traversed_edges = []
 
         while len(node.children):
-            if node[1] == 0:
-                traversed_edge = max(node.children.keys, lambda edge: edge.q() + self.usa_metric(node, edge))
+            if node.state[1] == 0:
+                traversed_edge = max(node.children.keys(), key=lambda edge: edge.q() + self.usa_metric(node, edge))
             else:
-                traversed_edge = min(node.children.keys, lambda edge: edge.q() - self.usa_metric(node, edge))
+                traversed_edge = min(node.children.keys(), key=lambda edge: edge.q() - self.usa_metric(node, edge))
 
             traversed_edge.traversals += 1
             traversed_edges.append(traversed_edge)
@@ -60,21 +63,25 @@ class MCTS:
 
     def expand(self, node):
         node.generate_children()
-        return next(iter(node.children.values()))
+        if len(node.children):
+            return next(iter(node.children.values()))
+        return node
 
     def rollout(self, node):
         state = node.state
         moves = game.get_moves(state)
         while len(moves):
             selected_move = self.default_policy(state, moves)
+            state = selected_move[1]
+            moves = game.get_moves(state)
 
-        return game.evaluate_state(selected_move[1])
+        return game.evaluate_state(state)
 
 
 class TreeEdge:
     def __init__(self, move):
         self.move = move
-        self.traversals = 0
+        self.traversals = 1
         self.score = 0
 
     def q(self):
@@ -89,11 +96,11 @@ class TreeNode:
     def __init__(self, state):
         self.state = state
         self.children = {}
-        self.visits = 0
+        self.visits = 1
 
     def generate_children(self, n_children=-1):
         possible_moves = game.get_moves(self.state)
         n_children = len(possible_moves) if n_children == -1 else min(len(possible_moves), n_children)
 
         for i in range(len(self.children), n_children):
-            self.children[TreeEdge(possible_moves[0])] == TreeNode(possible_moves[1])
+            self.children[TreeEdge(possible_moves[i][0])] = TreeNode(possible_moves[i][1])
