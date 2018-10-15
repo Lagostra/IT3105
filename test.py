@@ -1,7 +1,5 @@
-from network import Network
-from layers import Dense, DenseSequence, Dropout
-import tensorflow as tf
-import tflowtools as tft
+from nn.network import Network
+from nn.layers import Dense
 from data.mnist.mnist_basics import load_mnist_dataset
 
 layers = [

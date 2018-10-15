@@ -1,9 +1,5 @@
 import pandas as pd
-import tensorflow as tf
-import tflowtools as tft
-from data.mnist.mnist_basics import load_mnist_dataset
-from network import Network
-from layers import Dense, DenseSequence, Dropout
+from nn.network import Network
 
 
 def run_case(n, hyperparameter_file='hyperparameters.csv'):

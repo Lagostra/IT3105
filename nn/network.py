@@ -5,10 +5,10 @@ and run a set of standard operations such as training, evaluation and mapping te
 import tensorflow as tf
 import numpy as np
 import random
-import tflowtools as tft
+from nn import tflowtools as tft
 import matplotlib.pyplot as plt
 
-from layers import Dense
+from nn.layers import Dense
 
 _optimizers = {
     'adam': tf.train.AdamOptimizer,
