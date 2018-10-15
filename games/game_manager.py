@@ -29,11 +29,10 @@ def run_single_game(starting_player=0, verbose=False):
             return 1
 
 
-def main(verbose=False, play_mode='mix'):
+def main(verbose=False, play_mode='mix', num_games=50):
     wins = 0
-    games = 100
     starting_player = play_mode if type(play_mode) == int else 0
-    for i in range(games):
+    for i in range(num_games):
         result = run_single_game(starting_player=starting_player, verbose=verbose)
         if result == 0:
             if verbose:
@@ -47,8 +46,9 @@ def main(verbose=False, play_mode='mix'):
 
         if play_mode == 'mix':
             starting_player = (starting_player + 1) % 2
-    print('Player 1 won {} out of {} games; i.e. {:.1f}% of the played games.'.format(wins, games, (wins/games)*100))
+    print('Player 1 won {} out of {} games; i.e. {:.1f}% of the played games.'.format(wins,
+                                                                                      num_games, (wins/num_games)*100))
 
 
 if __name__ == '__main__':
-    main(True)
+    main(num_games=50, verbose=True)
