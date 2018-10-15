@@ -7,10 +7,11 @@ game = None
 
 class MCTS:
 
-    def __init__(self, game_, usa_metric=uct, simulations=200, default_policy=select_random()):
+    def __init__(self, game_, usa_metric=uct, simulations=200, default_policy=select_random(), state=None):
         global game
         game = game_
-        self.root = TreeNode(game.get_initial_state())
+        state = state if state else game.get_initial_state()
+        self.root = TreeNode(state)
         self.usa_metric = usa_metric
         self.simulations = simulations
         self.default_policy = default_policy
