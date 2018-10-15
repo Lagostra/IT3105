@@ -8,8 +8,8 @@ class Nim:
         self.min_pieces = min_pieces
         self.last_piece_wins = last_piece_wins
 
-    def get_initial_state(self):
-        return self.num_pieces, 0
+    def get_initial_state(self, player=0):
+        return self.num_pieces, player
 
     def get_moves(self, state):
         """
