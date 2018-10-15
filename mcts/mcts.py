@@ -16,6 +16,12 @@ class MCTS:
         self.simulations = simulations
         self.default_policy = default_policy
 
+    def update_state(self, move):
+        """
+        Updates state based on move selected by opponent.
+        """
+        self.root = TreeNode(game.get_outcome_state(self.root.state, move))
+
     def select_move(self):
         edge = self.select_edge()
         self.root = self.root.children[edge]
