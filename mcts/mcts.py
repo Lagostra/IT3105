@@ -19,6 +19,7 @@ class MCTS:
         edge = self.select_edge()
         self.root = self.root.children[edge]
         self.root.children = {}
+        self.root.visits = 0
 
         return edge.move
 
