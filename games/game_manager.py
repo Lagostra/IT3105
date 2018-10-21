@@ -1,10 +1,11 @@
 from mcts.mcts import MCTS
 from games.nim import Nim
 from games.random_player import RandomPlayer
+import random
 
-game = Nim(20, 3)
-player1 = MCTS(game)
-player2 = RandomPlayer(game)
+game = Nim(15, 2)
+player1 = MCTS(game, simulations=200)
+player2 = player1 #RandomPlayer(game)
 players = [player1, player2]
 
 
@@ -29,10 +30,12 @@ def run_single_game(starting_player=0, verbose=False):
             return 1
 
 
-def main(verbose=False, play_mode='mix', num_games=50):
+def main(verbose=False, play_mode='alternate', num_games=50):
     wins = 0
     starting_player = play_mode if type(play_mode) == int else 0
     for i in range(num_games):
+        if play_mode == 'mix':
+            starting_player = random.randint(0, 1)
         result = run_single_game(starting_player=starting_player, verbose=verbose)
         if result == 0:
             if verbose:
@@ -44,11 +47,11 @@ def main(verbose=False, play_mode='mix', num_games=50):
         if verbose:
             print()
 
-        if play_mode == 'mix':
+        if play_mode == 'alternate':
             starting_player = (starting_player + 1) % 2
     print('Player 1 won {} out of {} games; i.e. {:.1f}% of the played games.'.format(wins,
                                                                                       num_games, (wins/num_games)*100))
 
 
 if __name__ == '__main__':
-    main(num_games=50, verbose=True)
+    main(num_games=50, verbose=True, play_mode=0)
