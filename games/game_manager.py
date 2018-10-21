@@ -3,13 +3,22 @@ from games.nim import Nim
 from games.random_player import RandomPlayer
 import random
 
+# Instantiate our game with given parameters
 game = Nim(9, 3)
+# Create a new MCTS player for player 1
 player1 = MCTS(game, simulations=1000)
+# Create player 2 - either as the same player as player 1, or as a random player
 player2 = player1 #RandomPlayer(game)
 players = [player1, player2]
 
 
 def run_single_game(starting_player=0, verbose=False):
+    """
+    Runs a simulation of a single game, and returns the winning player.
+    :param starting_player: The player that should start the game.
+    :param verbose: If True, string representations of all moves will be printed to the console.
+    :return: 0 if player 1 is the winner, 1 if player 2 is the winner.
+    """
     state = game.get_initial_state(starting_player)
     current_player = starting_player
     for p in players:
@@ -31,6 +40,13 @@ def run_single_game(starting_player=0, verbose=False):
 
 
 def main(verbose=False, play_mode='alternate', num_games=50):
+    """
+    Runs a number of game simulations, and prints the result.
+    :param verbose: If True, string representations of all moves and winner of each individual game will be printed.
+    :param play_mode: Either an int that indicates the player that will start all games, 'mix' for picking a random
+                        player to start each game, and 'alternate' to make the players start every other game.
+    :param num_games: Number of games to be simulated.
+    """
     wins = 0
     starting_player = play_mode if type(play_mode) == int else 0
     for i in range(num_games):
