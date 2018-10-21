@@ -56,7 +56,7 @@ class Nim:
         player = state[1]
 
         if n_pieces == 0:
-            if self.last_piece_wins and player == 0 or not self.last_piece_wins and player == 1:
+            if self.last_piece_wins and player == 1 or not self.last_piece_wins and player == 0:
                 return 1
             else:
                 return -1
