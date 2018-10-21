@@ -3,8 +3,8 @@ from games.nim import Nim
 from games.random_player import RandomPlayer
 import random
 
-game = Nim(15, 2)
-player1 = MCTS(game, simulations=200)
+game = Nim(9, 3)
+player1 = MCTS(game, simulations=1000)
 player2 = player1 #RandomPlayer(game)
 players = [player1, player2]
 
