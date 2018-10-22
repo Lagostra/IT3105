@@ -5,6 +5,9 @@ import random
 
 # Instantiate our game with given parameters
 game = Nim(9, 3)
+num_games = 50
+play_mode = 0
+
 # Create a new MCTS player for player 1
 player1 = MCTS(game, simulations=1000)
 # Create player 2 - either as the same player as player 1, or as a random player
@@ -70,4 +73,4 @@ def main(verbose=False, play_mode='alternate', num_games=50):
 
 
 if __name__ == '__main__':
-    main(num_games=50, verbose=True, play_mode=0)
+    main(num_games=num_games, verbose=True, play_mode=play_mode)
