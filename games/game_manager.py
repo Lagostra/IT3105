@@ -8,7 +8,7 @@ game = Nim(9, 3)
 # Create a new MCTS player for player 1
 player1 = MCTS(game, simulations=1000)
 # Create player 2 - either as the same player as player 1, or as a random player
-player2 = player1 #RandomPlayer(game)
+player2 = (player1, RandomPlayer(game))[0]
 players = [player1, player2]
 
 
