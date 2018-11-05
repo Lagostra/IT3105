@@ -1,3 +1,5 @@
+import numpy as np
+
 from mcts.usa_metrics import uct
 from mcts.default_policies import select_random
 
@@ -41,19 +43,26 @@ class MCTS:
         """
         self.root = TreeNode(game.get_outcome_state(self.root.state, move))
 
-    def select_move(self):
+    def select_move(self, return_probabilities=False):
         """
         Selects a move by carrying out MCTS.
         :return: The selected move.
         """
-        edge = self.select_edge()
+        probabilities = None
+
+        if return_probabilities:
+            edge, probabilities = self.select_edge(True)
+        else:
+            edge = self.select_edge()
         self.root = self.root.children[edge]
         self.root.children = {}
         self.root.visits = 1
 
+        if return_probabilities:
+            return edge.move, probabilities
         return edge.move
 
-    def select_edge(self):
+    def select_edge(self, return_probabilities=False):
         """
         Selects the edge representing the best move.
         :return: The edge that corresponds to the best move in the current state.
@@ -64,7 +73,14 @@ class MCTS:
             score = self.rollout(node)
             self.backprop(traversed_edges, score)
 
-        return max(self.root.children.keys(), key=lambda e: e.traversals)
+        move = max(self.root.children.keys(), key=lambda e: e.traversals)
+
+        if return_probabilities:
+            probs = np.array([e.traversals for e in self.root.children.keys()])
+            probs = probs / probs.sum()
+            return move, probs
+
+        return move
 
     def traverse(self, root):
         """

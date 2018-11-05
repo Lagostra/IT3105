@@ -26,7 +26,7 @@ class Hex:
         player_moving = move[1]
 
         if player != player_moving:
-            raise Exception('Player ' + player_moving + ' is not in the move in the given state!')
+            raise Exception('Player ' + str(player_moving) + ' is not in the move in the given state!')
         if board[pos[0] * self.size + pos[1]] != 0:
             raise Exception('There is already a stone in the given position!')
         board[pos[0] * self.size + pos[1]] = player_moving + 1
@@ -105,5 +105,25 @@ class Hex:
 
     def state_size(self, one_hot_encoded=True):
         if one_hot_encoded:
-            return self.size**2 * 2
-        return self.size**2
+            return self.size**2 * 2 + 2
+        return self.size**2 + 1
+
+    def format_for_nn(self, state):
+        player = state[1]
+        board = state[0]
+
+        formatted_state = []
+        for s in board:
+            if s == 1:
+                formatted_state.extend([1, 0])
+            elif s == 2:
+                formatted_state.extend([0, 1])
+            else:
+                formatted_state.extend([0, 0])
+
+        if player == 0:
+            formatted_state.extend([1, 0])
+        else:
+            formatted_state.extend([0, 1])
+
+        return formatted_state

@@ -41,6 +41,9 @@ def load_data(data_source, case_fraction, validation_fraction, test_fraction, sh
     else:
         data = data_source
 
+    if not len(data):
+        return None
+
     if shuffle:
         random.shuffle(data)
 
@@ -183,6 +186,9 @@ class Network:
 
         self.add_summaries()
 
+        if not self.session:
+            self.session = tft.gen_initialized_session()
+
     def add_summaries(self):
         """
         Adds summaries for loss and accuracy to the graph.
@@ -216,15 +222,17 @@ class Network:
 
         return accuracy(targets, predictions)
 
-    def train(self, plot_results=False):
+    def train(self, plot_results=False, minibatch=None):
         """
         Trains the network using provided data and hyperparameters.
         :param plot_results: If True, a plot of train set errors and validation accuracy will be created upon finish.
         """
-        if not self.session:
-            self.session = tft.gen_initialized_session()
 
-        train_set, validate_set, _ = self.data
+        validate_set = []
+        if minibatch:
+            train_set = minibatch
+        else:
+            train_set, validate_set, _ = self.data
 
         errors = []
         validate_accuracies = []
@@ -232,7 +240,8 @@ class Network:
         summaries = tf.summary.merge(self.summaries)
 
         for i in range(1, self.steps + 1):
-            minibatch = random.sample(list(train_set), self.minibatch_size)
+            if not minibatch:
+                minibatch = random.sample(list(train_set), self.minibatch_size)
 
             inputs, targets = input_target_split(minibatch)
 
