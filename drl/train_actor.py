@@ -9,6 +9,9 @@ from games.random_player import RandomPlayer
 game = Hex()
 layers = [1000, 100]
 actor = Actor(game, layers)
+save_interval = 25
+num_games = 100
+rollouts = 500
 
 
 def actor_default_policy(state, moves):
@@ -16,7 +19,7 @@ def actor_default_policy(state, moves):
     return move
 
 
-mcts = MCTS(game, default_policy=actor_default_policy, simulations=500)
+mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
 
 
 def simulate_game_against_random(starting=True):
@@ -34,7 +37,7 @@ def simulate_game_against_random(starting=True):
 
 
 if __name__ == '__main__':
-    for i in range(100):
+    for i in range(num_games):
         print("[GAME {}] Initializing state".format(i + 1))
         state = game.get_initial_state()
         mcts.set_state(state)
@@ -48,9 +51,14 @@ if __name__ == '__main__':
 
         print("[GAME {}] Training neural network".format(i + 1))
         actor.train()
+
+        if (i + 1) % save_interval == 0:
+            print("[GAME {}] Saving neural network checkpoint".format(i + 1))
+            actor.network.save(f'model/game_{i+1}.ckpt')
+
         print()
 
     sim_games = 100
     starting = True
     won = sum(int(simulate_game_against_random(not starting)) for i in range(sim_games))
-    print("Won {}/{} ({:%}) games against random player".format(won, sim_games, won/sim_games))
+    print("Won {}/{} ({:.1%}) games against random player".format(won, sim_games, won/sim_games))

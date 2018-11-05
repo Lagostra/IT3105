@@ -282,8 +282,6 @@ class Network:
             ax1.set_xlabel('Step')
             plt.show()
 
-        print()
-
     def reset_accuracy(self):
         """
         Resets the TensorFlow accuracy counter.

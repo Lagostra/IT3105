@@ -7,7 +7,7 @@ from nn.network import Network
 
 class Actor:
 
-    def __init__(self, game, layers=[], minibatch_size=50):
+    def __init__(self, game, layers=[], minibatch_size=50, checkpoint=None):
         self.game = game
         self.replay_buffer = deque(maxlen=20000)
         self.minibatch_size = minibatch_size
@@ -24,6 +24,9 @@ class Actor:
             optimizer='adam'
         )
         self.network.build()
+
+        if checkpoint:
+            self.network.load(checkpoint)
 
     def select_move(self, state, stochastic=False):
         possible_moves = self.game.get_moves(state)
@@ -45,5 +48,4 @@ class Actor:
 
     def train(self):
         minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
-
         self.network.train(minibatch=minibatch)
