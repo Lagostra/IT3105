@@ -104,6 +104,7 @@ class Network:
     loss = None
     accuracy = None
     summaries = []
+    saver = None
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
@@ -184,10 +185,18 @@ class Network:
         self.loss = self.loss_function(targets, x)
         self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
+        self.saver = tf.train.Saver()
+
         self.add_summaries()
 
         if not self.session:
             self.session = tft.gen_initialized_session()
+
+    def load(self, path):
+        self.saver.restore(self.session, path)
+
+    def save(self, path):
+        self.saver.save(self.session, path)
 
     def add_summaries(self):
         """

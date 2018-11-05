@@ -16,7 +16,7 @@ def actor_default_policy(state, moves):
     return move
 
 
-mcts = MCTS(game, default_policy=actor_default_policy, simulations=200)
+mcts = MCTS(game, default_policy=actor_default_policy, simulations=500)
 
 
 def simulate_game_against_random(starting=True):
@@ -34,7 +34,7 @@ def simulate_game_against_random(starting=True):
 
 
 if __name__ == '__main__':
-    for i in range(10):
+    for i in range(100):
         print("[GAME {}] Initializing state".format(i + 1))
         state = game.get_initial_state()
         mcts.set_state(state)
