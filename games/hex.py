@@ -1,7 +1,7 @@
 
 class Hex:
 
-    def __init__(self, size=4):
+    def __init__(self, size=5):
         self.size = size
 
     def get_initial_state(self):
