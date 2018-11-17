@@ -9,7 +9,7 @@ from games.random_player import RandomPlayer
 
 game = Hex()
 layers = [1000, 100]
-save_interval = 25
+save_interval = 250
 num_games = 1000
 rollouts = 500
 
@@ -38,6 +38,7 @@ if __name__ == '__main__':
     #mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
     mcts = MCTS(game, simulations=rollouts)
     for i in range(num_games):
+        game_start_time = time.time()
         print("[GAME {}] Initializing state".format(i + 1))
         state = game.get_initial_state()
         mcts.set_state(state)
@@ -61,7 +62,7 @@ if __name__ == '__main__':
         if (i + 1) % save_interval == 0:
             print("[GAME {}] Saving neural network checkpoint".format(i + 1))
             actor.network.save(f'model/game_{i+1}.ckpt')
-
+        print(f'[GAME {i+1}] Time elapsed: {time.time() - game_start_time:.2f}')
         print()
 
     sim_games = 100
