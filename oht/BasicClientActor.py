@@ -30,9 +30,9 @@ class BasicClientActor(BasicClientActorAbs):
         current_player = state[0] - 1
         board = list(state[1:])
         state = (board, current_player)
-
+        print(f'Board: {board}')
         next_move = self.actor.select_move(state)
-
+        print(f'Selected move: {next_move}\n')
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
