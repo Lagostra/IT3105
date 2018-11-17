@@ -1,4 +1,5 @@
 import numpy as np
+import time
 
 from drl.actor import Actor
 from mcts.mcts import MCTS
@@ -16,7 +17,6 @@ rollouts = 500
 def actor_default_policy(state, moves):
     move = actor.select_move(state, stochastic=True)
     return move
-
 
 
 def simulate_game_against_random(starting=True):
@@ -42,12 +42,18 @@ if __name__ == '__main__':
         mcts.set_state(state)
 
         print("[GAME {}] Simulating game".format(i + 1))
+        num_moves = 0
+        total_time = 0
         while not game.is_finished(state):
+            num_moves += 1
+            start_time = time.time()
             move, probabilities = mcts.select_move(return_probabilities=True)
+            total_time += time.time() - start_time
             padded_probs = np.pad(probabilities, (0, game.num_possible_moves() - len(probabilities)), 'constant')
             actor.add_to_replay_buffer(game.format_for_nn(state), padded_probs)
             state = game.get_outcome_state(state, move)
 
+        print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
         print("[GAME {}] Training neural network".format(i + 1))
         actor.train()
 
