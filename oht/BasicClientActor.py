@@ -7,7 +7,7 @@ from drl.train_actor import layers as trained_layers
 
 
 class BasicClientActor(BasicClientActorAbs):
-    def __init__(self, IP_address = None,verbose=True):
+    def __init__(self, IP_address=None,verbose=True):
         self.series_id = -1
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
