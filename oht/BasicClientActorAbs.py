@@ -24,8 +24,6 @@ class BasicClientActorAbs(ABC):
 
         self.series_id = -1
 
-
-
     def connect_to_server(self):
         """
         We establish an encrypted connection to the server, using the IP-address and port number specified by the IT3105
