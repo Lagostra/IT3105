@@ -46,19 +46,6 @@ class MCTS:
         Selects a move by carrying out MCTS.
         :return: The selected move.
         """
-        probabilities = None
-
-        if return_probabilities:
-            edge, probabilities = self.select_edge(True)
-        else:
-            edge = self.select_edge()
-        self.update_state(edge.move)
-
-        if return_probabilities:
-            return edge.move, probabilities
-        return edge.move
-
-    def select_edge(self, return_probabilities=False):
         roots = list(pool.map(do_rollout, [(self, self.state, game)] * processes))
 
         moves = {}
@@ -69,13 +56,15 @@ class MCTS:
                     moves[edge.move] = edge.traversals
                 else:
                     moves[edge.move] += edge.traversals
-
         move = max(moves, key=moves.get)
+        self.update_state(move)
 
         if return_probabilities:
-            probs = moves.items()
+            probs = list(moves.values())
             return move, probs
         return move
+
+        probabilities = None
 
     def traverse(self, root):
         """
