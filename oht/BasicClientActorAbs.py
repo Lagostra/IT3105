@@ -9,7 +9,7 @@ class BasicClientActorAbs(ABC):
 
     def __init__(self, IP_address = None,verbose=True):
         self.verbose = verbose
-        if IP_address == None:
+        if IP_address is None:
             self.IP_address = '129.241.113.109'
         else:
             self.IP_address = IP_address

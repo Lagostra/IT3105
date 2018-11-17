@@ -1,10 +1,16 @@
-from BasicClientActorAbs import BasicClientActorAbs
+from oht.BasicClientActorAbs import BasicClientActorAbs
 import math
+
+from drl.actor import Actor
+from games.hex import Hex
+from drl.train_actor import layers as trained_layers
 
 class BasicClientActor(BasicClientActorAbs):
     def __init__(self, IP_address = None,verbose=True):
         self.series_id = -1
-        BasicClientActorAbs.__init__(self, IP_address,verbose=verbose)
+        BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
+
+        self.actor = Actor(Hex(), trained_layers, checkpoint='model/game_250.ckpt')
 
     def handle_get_action(self, state):
         """
@@ -18,18 +24,15 @@ class BasicClientActor(BasicClientActorAbs):
         """
 
         # This is an example player who picks random moves. REMOVE THIS WHEN YOU ADD YOUR OWN CODE !!
-        next_move = tuple(self.pick_random_free_cell(state, size=int(math.sqrt(len(state)-1))))
+        # next_move = tuple(self.pick_random_free_cell(state, size=int(math.sqrt(len(state)-1))))
 
-        #############################
-        #
-        #
-        # YOUR CODE HERE
-        #
-        # next_move = ???
-        ##############################
+        current_player = state[0] - 1
+        board = state[1:]
+        state = (board, current_player)
+
+        next_move = self.actor.select_move(state)
 
         return next_move
-
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
         """
