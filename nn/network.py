@@ -138,7 +138,7 @@ class Network:
         if type(layers[0]) == int:
             self.layers = []
             for i in range(len(layers) - 1):
-                self.layers.append(Dense(layers[i], layers[i + 1]))
+                self.layers.append(Dense(layers[i], layers[i + 1], name='layer1'))
         else:
             self.layers = layers
 
