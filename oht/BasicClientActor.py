@@ -28,7 +28,7 @@ class BasicClientActor(BasicClientActorAbs):
         # next_move = tuple(self.pick_random_free_cell(state, size=int(math.sqrt(len(state)-1))))
 
         current_player = state[0] - 1
-        board = state[1:]
+        board = list(state[1:])
         state = (board, current_player)
 
         next_move = self.actor.select_move(state)
