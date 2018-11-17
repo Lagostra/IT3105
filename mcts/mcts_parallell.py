@@ -5,7 +5,7 @@ from mcts.usa_metrics import uct
 from mcts.default_policies import select_random
 
 game = None
-processes = 4
+processes = 8
 pool = None
 
 

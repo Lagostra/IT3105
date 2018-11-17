@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 from drl.actor import Actor
-from mcts.mcts import MCTS
+from mcts.mcts_parallell import MCTS
 from games.hex import Hex
 from games.random_player import RandomPlayer
 
@@ -10,7 +10,7 @@ from games.random_player import RandomPlayer
 game = Hex()
 layers = [1000, 100]
 save_interval = 25
-num_games = 100
+num_games = 1000
 rollouts = 500
 
 
@@ -35,25 +35,26 @@ def simulate_game_against_random(starting=True):
 
 if __name__ == '__main__':
     actor = Actor(game, layers)
-    mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
+    #mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
+    mcts = MCTS(game, simulations=rollouts)
     for i in range(num_games):
         print("[GAME {}] Initializing state".format(i + 1))
         state = game.get_initial_state()
         mcts.set_state(state)
 
         print("[GAME {}] Simulating game".format(i + 1))
-        num_moves = 0
-        total_time = 0
+        #num_moves = 0
+        #total_time = 0
         while not game.is_finished(state):
-            num_moves += 1
-            start_time = time.time()
+            #num_moves += 1
+            #start_time = time.time()
             move, probabilities = mcts.select_move(return_probabilities=True)
-            total_time += time.time() - start_time
+            #total_time += time.time() - start_time
             padded_probs = np.pad(probabilities, (0, game.num_possible_moves() - len(probabilities)), 'constant')
             actor.add_to_replay_buffer(game.format_for_nn(state), padded_probs)
             state = game.get_outcome_state(state, move)
 
-        print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
+        #print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
         print("[GAME {}] Training neural network".format(i + 1))
         actor.train()
 
