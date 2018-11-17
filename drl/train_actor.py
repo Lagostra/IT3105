@@ -2,7 +2,7 @@ import numpy as np
 import time
 
 from drl.actor import Actor
-from mcts.mcts_parallell import MCTS
+from mcts.mcts import MCTS
 from games.hex import Hex
 from games.random_player import RandomPlayer
 
@@ -10,10 +10,10 @@ from games.random_player import RandomPlayer
 game = Hex()
 layers = [1000, 100]
 save_interval = 250
-start_game = 500
+start_game = 0
 num_games = 1000
 rollouts = 500
-checkpoint_base = 'model/game_'
+checkpoint_base = 'model/regular_'
 
 
 def actor_default_policy(state, moves):
@@ -36,8 +36,8 @@ def simulate_game_against_random(starting=True):
 
 
 def train():
-    # mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
-    mcts = MCTS(game, simulations=rollouts)
+    mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
+    #mcts = MCTS(game, simulations=rollouts)
     for i in range(start_game, start_game + num_games):
         game_start_time = time.time()
         print("[GAME {}] Initializing state".format(i + 1))
