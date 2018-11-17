@@ -35,11 +35,8 @@ def simulate_game_against_random(starting=True):
     return starting and result == 1 or not starting and result == -1
 
 
-if __name__ == '__main__':
-    if start_game > 0:
-        actor = Actor(game, layers, checkpoint=checkpoint_base + str(start_game) + '.ckpt')
-    actor = Actor(game, layers)
-    #mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
+def train():
+    # mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
     mcts = MCTS(game, simulations=rollouts)
     for i in range(start_game, start_game + num_games):
         game_start_time = time.time()
@@ -48,26 +45,34 @@ if __name__ == '__main__':
         mcts.set_state(state)
 
         print("[GAME {}] Simulating game".format(i + 1))
-        #num_moves = 0
-        #total_time = 0
+        # num_moves = 0
+        # total_time = 0
         while not game.is_finished(state):
-            #num_moves += 1
-            #start_time = time.time()
+            # num_moves += 1
+            # start_time = time.time()
             move, probabilities = mcts.select_move(return_probabilities=True)
-            #total_time += time.time() - start_time
+            # total_time += time.time() - start_time
             padded_probs = np.pad(probabilities, (0, game.num_possible_moves() - len(probabilities)), 'constant')
             actor.add_to_replay_buffer(game.format_for_nn(state), padded_probs)
             state = game.get_outcome_state(state, move)
 
-        #print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
+        # print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
         print("[GAME {}] Training neural network".format(i + 1))
         actor.train()
 
         if (i + 1) % save_interval == 0:
             print("[GAME {}] Saving neural network checkpoint".format(i + 1))
-            actor.network.save(checkpoint_base + str(i+1) + '.ckpt')
+            actor.network.save(checkpoint_base + str(i + 1) + '.ckpt')
         print(f'[GAME {i+1}] Time elapsed: {time.time() - game_start_time:.2f}')
         print()
+
+
+if __name__ == '__main__':
+    if start_game > 0:
+        actor = Actor(game, layers, checkpoint=checkpoint_base + str(start_game) + '.ckpt')
+    actor = Actor(game, layers)
+
+    train()
 
     sim_games = 100
     starting = True
