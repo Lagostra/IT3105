@@ -31,7 +31,7 @@ class BasicClientActor(BasicClientActorAbs):
         board = list(state[1:])
         state = (board, current_player)
         print(f'Board: {board}')
-        next_move = self.actor.select_move(state)
+        next_move = self.actor.select_move(state)[0][0]
         print(f'Selected move: {next_move}\n')
         return next_move
 
