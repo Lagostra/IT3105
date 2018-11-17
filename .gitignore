@@ -4,3 +4,4 @@ venv/
 probeview/
 model/
 .ipynb_checkpoints/
+credentials.txt

@@ -56,11 +56,15 @@ class BasicClientActorAbs(ABC):
 
             # We are asked to enter our NTNU username
             if "username" in msg:
-                usr_in = input(msg)
+                with open('credentials.txt') as f:
+                    usr_in = f.read().split('\n')[0]
+                # usr_in = input(msg)
 
             # We are asked to enter our NTNU password
             elif "password" in msg:
-                usr_in = getpass.getpass(msg)
+                with open('credentials.txt') as f:
+                    usr_in = f.read().split('\n')[1]
+                #usr_in = getpass.getpass(msg)
 
             # If we are successful the server will tell us and we can start a game!
             elif "Welcome" in msg:
@@ -93,6 +97,7 @@ class BasicClientActorAbs(ABC):
             # Unrecognized server response
             else:
                 print('Unrecognized response from server, disconnecting now.')
+                print(msg)
                 self.disconnect_from_server()
 
             # Send user response to server.
