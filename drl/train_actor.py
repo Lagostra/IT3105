@@ -14,6 +14,8 @@ start_game = 0
 num_games = 1000
 rollouts = 500
 checkpoint_base = 'model/regular_'
+replay_file = 'model/replays.txt'
+replay_save_interval = 1000
 
 
 def actor_default_policy(state, moves):
@@ -69,8 +71,9 @@ def train():
 
 if __name__ == '__main__':
     if start_game > 0:
-        actor = Actor(game, layers, checkpoint=checkpoint_base + str(start_game) + '.ckpt')
-    actor = Actor(game, layers)
+        actor = Actor(game, layers, checkpoint=checkpoint_base + str(start_game) + '.ckpt',
+                      replay_file=replay_file, rp_save_interval=replay_save_interval)
+    actor = Actor(game, layers, replay_file=replay_file, rp_save_interval=replay_save_interval)
 
     train()
 
