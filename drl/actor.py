@@ -17,7 +17,10 @@ class Actor:
         self.rp_count = 0
 
         if replay_file is not None:
-            self.load_replays()
+            try:
+                self.load_replays()
+            except FileNotFoundError:
+                pass
 
         self.network = Network(
             [game.state_size()] + layers + [game.num_possible_moves()],
