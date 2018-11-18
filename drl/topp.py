@@ -12,7 +12,7 @@ class TOPP:
             if checkpoint_base is None:
                 actor = Actor(Hex(), trained_layers, checkpoint=c)
             else:
-                actor = Actor(Hex(), trained_layers, checkpoint=f'model/game_{c}.ckpt')
+                actor = Actor(Hex(), trained_layers, checkpoint=checkpoint_base + str(c) + '.ckpt')
             self.actors.append(actor)
 
     def play_single_game(self, p1, p2, verbose=False):
@@ -61,5 +61,5 @@ class TOPP:
 
 if __name__ == '__main__':
     topp = TOPP([250, 500, 750], 'model/game_')
-    print(topp.run_tournament(verbose=True))
+    print(topp.run_tournament(verbose=False))
 
