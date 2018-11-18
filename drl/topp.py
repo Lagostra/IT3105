@@ -40,7 +40,7 @@ class TOPP:
 
         return result
 
-    def run_tournament(self, num_games=25, verbose=False):
+    def run_tournament(self, num_games=50, verbose=False):
         num_players = len(self.actors)
         wins = [0] * num_players
         for p1 in range(num_players):
@@ -48,7 +48,7 @@ class TOPP:
                 if p1 == p2:
                     continue
 
-                for g in range(num_games):
+                for g in range(num_games // 2):
                     result = self.play_single_game(p1, p2, verbose)
 
                     if result == 1:
@@ -60,6 +60,6 @@ class TOPP:
 
 
 if __name__ == '__main__':
-    topp = TOPP([250, 500, 750], 'model/game_')
+    topp = TOPP([0, 25, 50, 75, 100], 'model/regular_')
     print(topp.run_tournament(verbose=False))
 

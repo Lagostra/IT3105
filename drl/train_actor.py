@@ -8,13 +8,13 @@ from games.random_player import RandomPlayer
 
 
 game = Hex()
-layers = [1000, 100]
-save_interval = 250
+layers = [50, 25]
+save_interval = 25
 start_game = 0
-num_games = 1000
-rollouts = 500
+num_games = 100
+rollouts = 200
 checkpoint_base = 'model/regular_'
-replay_file = 'model/replays.txt'
+replay_file = 'model/replays_100_rollouts.txt'
 replay_save_interval = 1000
 
 
@@ -40,6 +40,9 @@ def simulate_game_against_random(starting=True):
 def train():
     mcts = MCTS(game, default_policy=actor_default_policy, simulations=rollouts)
     #mcts = MCTS(game, simulations=rollouts)
+    if start_game == 0:
+        actor.network.save(checkpoint_base + '0.ckpt')
+
     for i in range(start_game, start_game + num_games):
         game_start_time = time.time()
         print("[GAME {}] Initializing state".format(i + 1))
@@ -75,7 +78,14 @@ if __name__ == '__main__':
                       replay_file=replay_file, rp_save_interval=replay_save_interval)
     actor = Actor(game, layers, replay_file=replay_file, rp_save_interval=replay_save_interval)
 
+
     train()
+    # actor.network.save('model/test_0.ckpt')
+    # for i in range(1000):
+    #     if i % 10 == 0:
+    #         print(i)
+    #     actor.train()
+    # actor.network.save('model/test.ckpt')
 
     sim_games = 100
     starting = True
