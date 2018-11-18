@@ -6,12 +6,25 @@ from games.hex import Hex
 from drl.train_actor import layers as trained_layers
 
 
+def print_board(board, size):
+    print(' ', end='')
+    for i in range(size):
+        print(str(i).rjust(2), end='')
+    print()
+
+    for i in range(size):
+        print(i, end='')
+        for j in range(size):
+            print(str(board[i*size + j]).rjust(2), end='')
+        print()
+
+
 class BasicClientActor(BasicClientActorAbs):
     def __init__(self, IP_address=None,verbose=True):
         self.series_id = -1
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
-        self.actor = Actor(Hex(), trained_layers, checkpoint='model/game_250.ckpt')
+        self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_250.ckpt')
 
     def handle_get_action(self, state):
         """
@@ -30,9 +43,11 @@ class BasicClientActor(BasicClientActorAbs):
         current_player = state[0] - 1
         board = list(state[1:])
         state = (board, current_player)
-        print(f'Board: {board}')
+        if self.verbose:
+            print_board(board, 5)
         next_move = self.actor.select_move(state)[0][0]
-        print(f'Selected move: {next_move}\n')
+        if self.verbose:
+            print(f'Selected move: {next_move}\n')
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
@@ -141,4 +156,10 @@ class BasicClientActor(BasicClientActorAbs):
 
 if __name__ ==  '__main__':
     bsa = BasicClientActor(verbose=True)
+    # bsa.handle_get_action((1,
+    #                        1, 1, 1, 1, 0,
+    #                        0, 0, 0, 0, 2,
+    #                        0, 0, 0, 0, 2,
+    #                        0, 0, 0, 0, 2,
+    #                        0, 0, 0, 0, 2))
     bsa.connect_to_server()
