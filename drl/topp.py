@@ -9,7 +9,7 @@ class TOPP:
         self.game = Hex()
         self.actors = []
         for c in checkpoints:
-            if checkpoint_base is None:
+            if type(c) == str:
                 actor = Actor(Hex(), trained_layers, checkpoint=c)
             else:
                 actor = Actor(Hex(), trained_layers, checkpoint=checkpoint_base + str(c) + '.ckpt')
