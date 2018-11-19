@@ -176,8 +176,13 @@ class Network:
                 targets = tf.squeeze(tf.one_hot(tf.cast(self.targets, 'int32'), self.layers[-1].output_shape[0], axis=1))
             x = self.inputs
 
-            for layer in self.layers:
-                x = layer.execute(x)
+            if type(self.layers) == list:
+                for layer in self.layers:
+                    x = layer.execute(x)
+            elif callable(self.layers):
+                x = self.layers(x)
+            else:
+                raise ValueError('layers must be either a list of layers, or a model function')
 
             self.outputs = self.raw_outputs = x
             if self.output_functions:
