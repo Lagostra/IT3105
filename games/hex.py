@@ -43,7 +43,7 @@ class Hex:
                 y = i + j
                 x = (self.size - 1) + j - i
                 grid[y][x] = state[0][i * self.size + j]
-        return '\n'.join(["".join(str(item) for item in row) for row in grid])
+        return '\n'.join([" ".join(str(item) for item in row) for row in grid])
 
     def unflatten(self, board):
         for i in range(0, len(board), self.size):
@@ -54,8 +54,6 @@ class Hex:
         x = slot[1]
         neighbours = []
         if y > 0:
-            if x > 0:
-                neighbours.append((y-1, x-1))
             neighbours.append((y-1, x))
             if x + 1 < self.size:
                 neighbours.append((y-1, x+1))
@@ -63,8 +61,6 @@ class Hex:
             if x > 0:
                 neighbours.append((y+1, x-1))
             neighbours.append((y+1, x))
-            if x + 1 < self.size:
-                neighbours.append((y+1, x+1))
         if x > 0:
             neighbours.append((y, x-1))
         if x + 1 < self.size:
