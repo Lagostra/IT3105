@@ -54,9 +54,17 @@ class Hex:
         x = slot[1]
         neighbours = []
         if y > 0:
+            if x > 0:
+                neighbours.append((y-1, x-1))
             neighbours.append((y-1, x))
+            if x + 1 < self.size:
+                neighbours.append((y-1, x+1))
         if y + 1 < self.size:
+            if x > 0:
+                neighbours.append((y+1, x-1))
             neighbours.append((y+1, x))
+            if x + 1 < self.size:
+                neighbours.append((y+1, x+1))
         if x > 0:
             neighbours.append((y, x-1))
         if x + 1 < self.size:
@@ -133,20 +141,3 @@ class Hex:
                 formatted_state.append(-1)
 
         return formatted_state
-
-
-if __name__ == '__main__':
-    board = []
-
-    for row in [
-        [1, 1, 1, 2, 1],
-        [1, 1, 1, 1, 2],
-        [1, 2, 1, 2, 1],
-        [1, 1, 2, 2, 2],
-        [2, 2, 2, 2, 1],
-    ]:
-        board = board + row
-    print(board)
-
-    print(Hex().is_finished((board, 1)))
-
