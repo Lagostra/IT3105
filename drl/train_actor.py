@@ -3,6 +3,7 @@ from collections import deque
 import itertools
 import random
 import pickle
+import os
 
 import numpy as np
 
@@ -25,7 +26,14 @@ class ActorTrainer:
         self.replay_buffer = deque(maxlen=replay_limit)
         self.rp_count = 0
         self.minibatch_size = minibatch_size
-        self.replay_file = replay_file
+
+        if replay_file == 'auto':
+            self.replay_file = f'{checkpoint_directory}/replays.txt'
+        else:
+            self.replay_file = replay_file
+
+        if not os.path.exists(checkpoint_directory):
+            os.makedirs(checkpoint_directory)
 
         if actor:
             self.actor = actor
@@ -39,7 +47,7 @@ class ActorTrainer:
             raise ValueError(f'replay_save_interval ({replay_save_interval}) must be smaller '
                              f'than replay_limit ({replay_limit})')
 
-        if replay_file is not None:
+        if replay_file is not None and replay_file != 'auto':
             try:
                 self.load_replays()
             except FileNotFoundError:
@@ -138,19 +146,19 @@ if __name__ == '__main__':
     game = Hex()
     layers = [100, 50]
     actor = Actor(game, layers, one_hot_encode_state=True)
-    num_games = 100
+    num_games = 250
 
     trainer = ActorTrainer(
         game=game,
-        checkpoint_directory='model/test',
-        actor=None,
+        checkpoint_directory='model/100x50-500',
+        actor=actor,
         network_save_interval=50,
-        rollouts=100,
+        rollouts=500,
         start_game=0,
         replay_save_interval=250,
         replay_limit=20000,
         minibatch_size=50,
-        replay_file='model/replays/replays_100_rollouts.txt',
+        replay_file='auto',
     )
 
     trainer.train(num_games)

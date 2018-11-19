@@ -1,18 +1,18 @@
-from drl.actor import Actor
+from drl.train_actor import ActorTrainer
 from games.hex import Hex
-from drl.train_actor import layers as trained_layers
-
 
 class TOPP:
 
-    def __init__(self, checkpoints, checkpoint_base=None):
+    def __init__(self, checkpoints, checkpoint_directory=None):
         self.game = Hex()
         self.actors = []
         for c in checkpoints:
+            trainer = ActorTrainer(self.game, checkpoint_directory, start_game=c)
+            actor = trainer.actor
+
             if type(c) == str:
-                actor = Actor(Hex(), trained_layers, checkpoint=c)
-            else:
-                actor = Actor(Hex(), trained_layers, checkpoint=checkpoint_base + str(c) + '.ckpt')
+                pass
+                # actor = Actor(Hex(), trained_layers, checkpoint=c)
             self.actors.append(actor)
 
     def play_single_game(self, p1, p2, verbose=False):
@@ -61,7 +61,7 @@ class TOPP:
 
 if __name__ == '__main__':
     num_games = 30
-    topp = TOPP([0, 25, 75, 100], 'model/r100_')
+    topp = TOPP([0], 'model/test')
     result = topp.run_tournament(verbose=False, num_games=num_games)
     for row in result:
         for col in row:
