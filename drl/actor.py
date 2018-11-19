@@ -53,8 +53,12 @@ class Actor:
             return possible_moves[move]
 
         predictions = np.array(predictions)
-        predictions = predictions / predictions.sum()
-        move = np.random.choice(np.arange(0, len(predictions)), p=predictions)
+        div = predictions.sum()
+        if div == 0:
+            move = np.random.choice(np.arange(0, len(predictions)))
+        else:
+            predictions = predictions / div
+            move = np.random.choice(np.arange(0, len(predictions)), p=predictions)
         return possible_moves[move]
 
     def add_to_replay_buffer(self, state, probabilities):
