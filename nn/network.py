@@ -198,7 +198,7 @@ class Network:
             for layer in self.layers:
                 save_variables.append(layer.weights)
                 save_variables.append(layer.bias)
-            self.saver = tf.train.Saver(save_variables)
+            self.saver = tf.train.Saver(save_variables, max_to_keep=None)
 
             self.add_summaries()
 
