@@ -69,6 +69,9 @@ class Hex:
 
     def evaluate_state(self, state):
         def is_won(pos, player, visited=[]):
+            if state[0][pos[0]*self.size + pos[1]] != player + 1:
+                return False
+
             visited.append(pos)
             if player == 0 and pos[0] == self.size - 1\
                     or player == 1 and pos[1] == self.size - 1:
@@ -137,3 +140,17 @@ class Hex:
                 formatted_state.append(-1)
 
         return formatted_state
+
+if __name__ == '__main__':
+    hex = Hex()
+    board = [
+        1, 1, 2, 1, 1,
+        2, 1, 1, 1, 2,
+        0, 2, 2, 2, 0,
+        0, 0, 0, 0, 0,
+        2, 0, 0, 0, 0,
+    ]
+
+    state = (board, 0)
+    print(hex.get_state_string(state))
+    print(hex.is_finished(state))
