@@ -7,12 +7,13 @@ class TOPP:
         self.game = Hex()
         self.actors = []
         for c in checkpoints:
-            trainer = ActorTrainer(self.game, checkpoint_directory, start_game=c)
-            actor = trainer.actor
+            if type(c) == int:
+                trainer = ActorTrainer(self.game, checkpoint_directory, start_game=c)
+                actor = trainer.actor
+            elif type(c) == tuple:
+                trainer = ActorTrainer(self.game, c[0], start_game=c[1])
+                actor = trainer.actor
 
-            if type(c) == str:
-                pass
-                # actor = Actor(Hex(), trained_layers, checkpoint=c)
             self.actors.append(actor)
 
     def play_single_game(self, p1, p2, verbose=False):
@@ -61,7 +62,7 @@ class TOPP:
 
 if __name__ == '__main__':
     num_games = 30
-    topp = TOPP([0], 'model/test')
+    topp = TOPP([('model/test', 0)], '')
     result = topp.run_tournament(verbose=False, num_games=num_games)
     for row in result:
         for col in row:
