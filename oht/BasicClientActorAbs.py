@@ -7,7 +7,7 @@ from abc import ABC, abstractmethod
 
 class BasicClientActorAbs(ABC):
 
-    def __init__(self, IP_address = None,verbose=True):
+    def __init__(self, IP_address=None,verbose=True):
         self.verbose = verbose
         if IP_address is None:
             self.IP_address = '129.241.113.109'
@@ -105,7 +105,7 @@ class BasicClientActorAbs(ABC):
 
     def show_state(self,state):
         if self.verbose:
-            print(state)
+            self.print_state(state)
 
     def play_tournament(self):
         """
@@ -282,6 +282,22 @@ class BasicClientActorAbs(ABC):
                 col = index % size
                 empty_locs.append((row, col))
         return random.choice(empty_locs)
+
+    @staticmethod
+    def print_state(state, size=5):
+        board = state[1:]
+        player = state[0]
+        print(f'Player moving: {player}')
+        print(' ', end='')
+        for i in range(size):
+            print(str(i).rjust(2), end='')
+        print()
+
+        for i in range(size):
+            print(i, end='')
+            for j in range(size):
+                print(str(board[i * size + j]).rjust(2), end='')
+            print()
 
 
 

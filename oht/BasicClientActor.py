@@ -6,19 +6,6 @@ from games.hex import Hex
 from drl.train_actor import layers as trained_layers
 
 
-def print_board(board, size):
-    print(' ', end='')
-    for i in range(size):
-        print(str(i).rjust(2), end='')
-    print()
-
-    for i in range(size):
-        print(i, end='')
-        for j in range(size):
-            print(str(board[i*size + j]).rjust(2), end='')
-        print()
-
-
 class BasicClientActor(BasicClientActorAbs):
     def __init__(self, IP_address=None,verbose=True):
         self.series_id = -1
@@ -100,9 +87,11 @@ class BasicClientActor(BasicClientActorAbs):
         #
         #
         ##############################
+        print()
         print("Game over, these are the stats:")
         print('Winner: ' + str(winner))
-        print('End state: ' + str(end_state))
+        print('End state:')
+        self.print_state(end_state)
 
     def handle_series_over(self, stats):
         """
@@ -156,7 +145,7 @@ class BasicClientActor(BasicClientActorAbs):
 
 
 if __name__ ==  '__main__':
-    bsa = BasicClientActor(verbose=True)
+    bsa = BasicClientActor(verbose=False)
     # bsa.handle_get_action((1,
     #                        1, 1, 1, 1, 0,
     #                        0, 0, 0, 0, 2,
