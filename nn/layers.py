@@ -160,5 +160,14 @@ class MaxPool2D:
         self.name = name
 
     def execute(self, x):
-        self.output = tf.nn.max_pool(x, self.ksize, self.strides, self.padding)
+        self.output = tf.nn.max_pool(x, self.ksize, self.strides, self.padding, name=self.name)
+        return self.output
+
+
+class Flatten:
+    def __init__(self, name=None):
+        self.output = None
+
+    def execute(self, x):
+        self.output = tf.layers.flatten(x, name=self.name)
         return self.output
