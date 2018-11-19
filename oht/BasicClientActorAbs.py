@@ -4,10 +4,11 @@ import ssl
 import random
 import math
 from abc import ABC, abstractmethod
+from games.hex import Hex
 
 
 class BasicClientActorAbs(ABC):
-
+    hex = Hex()
     def __init__(self, ip_address=None, verbose=True, auto_test=False):
         self.verbose = verbose
         self.auto_test = auto_test
@@ -294,13 +295,5 @@ class BasicClientActorAbs(ABC):
         board = state[1:]
         player = state[0]
         print(f'Player moving: {player}')
-        print(' ', end='')
-        for i in range(size):
-            print(str(i).rjust(2), end='')
+        print(BasicClientActorAbs.hex.get_state_string((board, player)))
         print()
-
-        for i in range(size):
-            print(i, end='')
-            for j in range(size):
-                print(str(board[i * size + j]).rjust(2), end='')
-            print()
