@@ -56,7 +56,7 @@ class Actor:
         return possible_moves[move]
 
     def add_to_replay_buffer(self, state, probabilities):
-        formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
+        #formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
         self.replay_buffer.append((state, probabilities))
         self.rp_count += 1
 
@@ -70,7 +70,9 @@ class Actor:
 
         with open(self.replay_file, 'a') as f:
             for replay in replays:
-                rp_string = ','.join(map(str, replay[0])) + ';' + ','.join(map(str, replay[1]))
+                state_string = ','.join(map(str, replay[0][0])) + ',' + str(replay[0][1])
+                probs_string = ','.join(map(str, replay[1]))
+                rp_string = state_string + ';' + probs_string
                 f.write(rp_string + '\n')
 
     def load_replays(self):
@@ -78,9 +80,14 @@ class Actor:
             for line in f:
                 state, probs = line.split(';')
                 state = list(map(int, state.split(',')))
+                player = state[-1]
+                board = state[:-1]
                 probs = list(map(float, probs.split(',')))
-                self.replay_buffer.append((state, probs))
+                self.replay_buffer.append(((board, player), probs))
 
     def train(self):
         minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
+        for i in range(len(minibatch)):
+            minibatch[i] = self.game.format_for_nn(minibatch[i][0]), minibatch[i][1]
+        print(minibatch[0])
         self.network.train(minibatch=minibatch)
