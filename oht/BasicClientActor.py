@@ -111,7 +111,7 @@ class BasicClientActor(BasicClientActorAbs):
         for stat in stats:
             if stat[1] == self.series_id:
                 # Found my stats
-                print(f'Won {stat[2]}/{stat[2] + stat[3]} ({stat[2]/stat[2]+stat[3]:.2%})')
+                print(f'Won {stat[2]}/{stat[2] + stat[3]} ({stat[2]/(stat[2]+stat[3]):.0%})')
         # print(str(stats))
 
     def handle_tournament_over(self, score):
