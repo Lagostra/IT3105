@@ -1,28 +1,13 @@
-from collections import deque
-import itertools
 import numpy as np
-import random
 
 from nn.network import Network
 
 
 class Actor:
 
-    def __init__(self, game, layers=[], minibatch_size=50, checkpoint=None, replay_file=None, rp_save_interval=1000,
-                 one_hot_encode_state=True):
+    def __init__(self, game, layers=[], checkpoint=None, one_hot_encode_state=True):
         self.game = game
-        self.replay_buffer = deque(maxlen=20000)
-        self.minibatch_size = minibatch_size
-        self.replay_file = replay_file
-        self.rp_save_interval = min(rp_save_interval, 20000)
-        self.rp_count = 0
         self.one_hot_encode_state = one_hot_encode_state
-
-        if replay_file is not None:
-            try:
-                self.load_replays()
-            except FileNotFoundError:
-                pass
 
         self.network = Network(
             [game.state_size()] + layers + [game.num_possible_moves()],
@@ -38,7 +23,7 @@ class Actor:
         self.network.build()
 
         if checkpoint:
-            self.network.load(checkpoint)
+            self.load_checkpoint(checkpoint)
 
     def select_move(self, state, stochastic=False):
         possible_moves = self.game.get_moves(state)
@@ -55,38 +40,9 @@ class Actor:
         move = np.random.choice(np.arange(0, len(predictions)), p=predictions)
         return possible_moves[move]
 
-    def add_to_replay_buffer(self, state, probabilities):
-        #formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
-        self.replay_buffer.append((state, probabilities))
-        self.rp_count += 1
+    def save_checkpoint(self, checkpoint):
+        self.network.save(checkpoint)
 
-        if self.rp_save_interval != -1 and self.rp_count % self.rp_save_interval == 0 and self.rp_count != 0:
-            replays = len(self.replay_buffer)
-            self.save_replays(itertools.islice(self.replay_buffer, replays - self.rp_save_interval, replays))
+    def load_checkpoint(self, checkpoint):
+        self.network.load(checkpoint)
 
-    def save_replays(self, replays):
-        if self.replay_file is None:
-            return
-
-        with open(self.replay_file, 'a') as f:
-            for replay in replays:
-                state_string = ','.join(map(str, replay[0][0])) + ',' + str(replay[0][1])
-                probs_string = ','.join(map(str, replay[1]))
-                rp_string = state_string + ';' + probs_string
-                f.write(rp_string + '\n')
-
-    def load_replays(self):
-        with open(self.replay_file, 'r') as f:
-            for line in f:
-                state, probs = line.split(';')
-                state = list(map(int, state.split(',')))
-                player = state[-1]
-                board = state[:-1]
-                probs = list(map(float, probs.split(',')))
-                self.replay_buffer.append(((board, player), probs))
-
-    def train(self):
-        minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
-        for i in range(len(minibatch)):
-            minibatch[i] = self.game.format_for_nn(minibatch[i][0]), minibatch[i][1]
-        self.network.train(minibatch=minibatch)

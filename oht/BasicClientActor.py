@@ -12,7 +12,7 @@ class BasicClientActor(BasicClientActorAbs):
         self.starting_player = -1
         BasicClientActorAbs.__init__(self, ip_address, verbose=verbose, auto_test=auto_test)
 
-        self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_100.ckpt')
+        self.actor = Actor(Hex(), trained_layers, checkpoint='model/r100_0.ckpt')
 
     def handle_get_action(self, state):
         """

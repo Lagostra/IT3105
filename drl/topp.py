@@ -60,8 +60,8 @@ class TOPP:
 
 
 if __name__ == '__main__':
-    num_games = 50
-    topp = TOPP([0, 25, 75, 100, 150], 'model/regular_')
+    num_games = 30
+    topp = TOPP([0, 25, 75, 100], 'model/r100_')
     result = topp.run_tournament(verbose=False, num_games=num_games)
     for row in result:
         for col in row:
