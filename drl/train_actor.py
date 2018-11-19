@@ -2,22 +2,21 @@ import time
 from collections import deque
 import itertools
 import random
+import pickle
 
 import numpy as np
 
 from drl.actor import Actor
 from mcts.mcts import MCTS
 from games.hex import Hex
-from games.random_player import RandomPlayer
 
 
 class ActorTrainer:
 
-    def __init__(self, game, actor, checkpoint_directory, network_save_interval=100, rollouts=100,
+    def __init__(self, game, checkpoint_directory, actor=None, network_save_interval=100, rollouts=100,
                  start_game=0, replay_save_interval=250, replay_limit=20000, minibatch_size=50,
                  replay_file=None):
         self.game = game
-        self.actor = actor
         self.checkpoint_directory = checkpoint_directory
         self.network_save_interval = network_save_interval
         self.mcts = MCTS(game, simulations=rollouts, default_policy=self.create_default_policy())
@@ -27,6 +26,14 @@ class ActorTrainer:
         self.rp_count = 0
         self.minibatch_size = minibatch_size
         self.replay_file = replay_file
+
+        if actor:
+            self.actor = actor
+            self.save_actor_to_file()
+        else:
+            self.load_actor_from_file()
+            if start_game > 0:
+                self.actor.load_checkpoint(f'{checkpoint_directory}/game_{start_game}')
 
         if replay_save_interval > replay_limit:
             raise ValueError(f'replay_save_interval ({replay_save_interval}) must be smaller '
@@ -39,17 +46,17 @@ class ActorTrainer:
                 pass
 
         if start_game == 0:
-            actor.save_checkpoint(checkpoint_directory + '/game_0')
+            self.actor.save_checkpoint(checkpoint_directory + '/game_0')
 
     def train(self, num_games):
         for i in range(num_games):
             self.game_count += 1
             game_start_time = time.time()
-            print(f'[GAME {self.game_count} Initializing state')
+            print(f'[GAME {self.game_count}] Initializing state')
             state = self.game.get_initial_state()
             self.mcts.set_state(state)
 
-            print(f'[GAME {self.game_count} Simulating game')
+            print(f'[GAME {self.game_count}] Simulating game')
             while not self.game.is_finished(state):
                 move, probabilities = self.mcts.select_move(True)
                 padded_probs = np.pad(probabilities, (0, self.game.num_possible_moves() - len(probabilities)),
@@ -109,57 +116,41 @@ class ActorTrainer:
                 probs = list(map(float, probs.split(',')))
                 self.replay_buffer.append(((board, player), probs))
 
+    def load_actor_from_file(self):
+        with open(f'{self.checkpoint_directory}/actor_params.txt') as f:
+            lines = f.read().split('\n')
+            one_hot = bool(lines[0])
 
-game = Hex()
-layers = [100, 50]
-save_interval = 50
-start_game = 0
-num_games = 200
-rollouts = 100
-checkpoint_base = 'model/r100_'
-replay_file = 'model/replays_100_rollouts.txt'
-replay_save_interval = 250
-one_hot_encode_state = True
+        with open(f'{self.checkpoint_directory}/actor_layers.bin', 'rb') as f:
+            layers = pickle.load(f)
 
+        self.actor = Actor(self.game, layers, one_hot_encode_state=one_hot)
 
-def actor_default_policy(state, moves):
-    move = actor.select_move(state, stochastic=True)
-    return move
+    def save_actor_to_file(self):
+        with open(f'{self.checkpoint_directory}/actor_params.txt', 'w') as f:
+            f.write(str(self.actor.one_hot_encode_state))
 
+        with open(f'{self.checkpoint_directory}/actor_layers.bin', 'wb') as f:
+            pickle.dump(self.actor.layers, f)
 
-def simulate_game_against_random(starting=True):
-    state = game.get_initial_state()
-    random_player = RandomPlayer(game)
-    while not game.is_finished(state):
-        if starting and state[1] == 0 or not starting and state[1] == 1:
-            move = actor.select_move(state)
-        else:
-            move = random_player.select_move_from_state(state)
-        state = move[1]
-
-    result = game.evaluate_state(state)
-    return starting and result == 1 or not starting and result == -1
 
 if __name__ == '__main__':
+    game = Hex()
+    layers = [100, 50]
+    actor = Actor(game, layers, one_hot_encode_state=True)
+    num_games = 100
 
+    trainer = ActorTrainer(
+        game=game,
+        checkpoint_directory='model/test',
+        actor=None,
+        network_save_interval=50,
+        rollouts=100,
+        start_game=0,
+        replay_save_interval=250,
+        replay_limit=20000,
+        minibatch_size=50,
+        replay_file='model/replays/replays_100_rollouts.txt',
+    )
 
-    if start_game > 0:
-        actor = Actor(game, layers, checkpoint=checkpoint_base + str(start_game) + '.ckpt',
-                      replay_file=replay_file, rp_save_interval=replay_save_interval,
-                      one_hot_encode_state=one_hot_encode_state)
-    actor = Actor(game, layers, replay_file=replay_file, rp_save_interval=replay_save_interval,
-                  one_hot_encode_state=one_hot_encode_state)
-
-
-    train()
-    # actor.network.save('model/test_0.ckpt')
-    # for i in range(1000):
-    #     if i % 10 == 0:
-    #         print(i)
-    #     actor.train()
-    # actor.network.save('model/test.ckpt')
-
-    sim_games = 100
-    starting = True
-    won = sum(int(simulate_game_against_random(not starting)) for i in range(sim_games))
-    print("Won {}/{} ({:.1%}) games against random player".format(won, sim_games, won/sim_games))
+    trainer.train(num_games)

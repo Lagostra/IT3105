@@ -8,6 +8,7 @@ class Actor:
     def __init__(self, game, layers=[], checkpoint=None, one_hot_encode_state=True):
         self.game = game
         self.one_hot_encode_state = one_hot_encode_state
+        self.layers = layers
 
         self.network = Network(
             [game.state_size()] + layers + [game.num_possible_moves()],
