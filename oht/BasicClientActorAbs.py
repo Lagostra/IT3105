@@ -1,5 +1,6 @@
 
-import socket, ssl, pprint, getpass
+import socket
+import ssl
 import random
 import math
 from abc import ABC, abstractmethod
@@ -19,9 +20,7 @@ class BasicClientActorAbs(ABC):
 
         # We require a certificate from the server. We used a self-signed certificate
         # so here ca_certs must be the server certificate itself.
-        self.ssl_sock = ssl.wrap_socket(self.s,
-                                   ca_certs="server.crt",
-                                   cert_reqs=ssl.CERT_REQUIRED)
+        self.ssl_sock = ssl.wrap_socket(self.s, ca_certs="server.crt", cert_reqs=ssl.CERT_REQUIRED)
 
         self.series_id = -1
 
@@ -32,7 +31,7 @@ class BasicClientActorAbs(ABC):
         your actor. When the correct credentials are entered and verified by the server, a tournament will automatically
         be started by the server.
 
-        ------------------------------------------ IMPORTANT NOTES ------------------------------------------------------
+        ------------------------------------------ IMPORTANT NOTES -----------------------------------------------------
         If you decide to automate the process of entering your user credentials, you should NOT store your password in
         the code. You can store it in a separate file, but you must then make sure that this file is not uploaded to
         either Blackboard or any version control system you are using. Failure to do so might compromise your NTNU
@@ -41,7 +40,7 @@ class BasicClientActorAbs(ABC):
         This server ONLY responds to requests from computers on the NTNU network.  Therefore you either need to be
         on campus or use VPN to have access.
 
-        ------------------------------------------ IMPORTANT NOTES ------------------------------------------------------
+        ------------------------------------------ IMPORTANT NOTES -----------------------------------------------------
 
         :return:
         """
@@ -54,7 +53,7 @@ class BasicClientActorAbs(ABC):
         # Receive initial login dialog
         while True:
             msg = self.ssl_sock.recv(1024).decode('utf8')
-
+            usr_in = ""
             # We are asked to enter our NTNU username
             if "username" in msg:
                 with open('credentials.txt') as f:
@@ -65,7 +64,7 @@ class BasicClientActorAbs(ABC):
             elif "password" in msg:
                 with open('credentials.txt') as f:
                     usr_in = f.read().split('\n')[1]
-                #usr_in = getpass.getpass(msg)
+                # usr_in = getpass.getpass(msg)
 
             # If we are successful the server will tell us and we can start a game!
             elif "Welcome" in msg:
@@ -75,7 +74,6 @@ class BasicClientActorAbs(ABC):
                 self.play_tournament()
                 # Tournament finished, disconnect from server.
                 self.disconnect_from_server()
-
 
             # We entered wrong credentials
             elif "Invalid credentials" in msg:
@@ -110,7 +108,7 @@ class BasicClientActorAbs(ABC):
             # Send user response to server.
             self.ssl_sock.send(bytes(usr_in, 'utf8'))
 
-    def show_state(self,state):
+    def show_state(self, state):
         if self.verbose:
             self.print_state(state)
 
@@ -159,7 +157,7 @@ class BasicClientActorAbs(ABC):
                 num_games = eval(self.ssl_sock.recv(1024).decode('utf8'))
                 game_params = eval(self.ssl_sock.recv(1024).decode('utf8'))
                 series_player_id = [p[1] for p in player_id_map if p[0] == unique_player_id][0]
-                self.handle_series_start(unique_player_id,series_player_id,player_id_map,num_games,game_params)
+                self.handle_series_start(unique_player_id, series_player_id, player_id_map, num_games, game_params)
 
             elif state == 'Game start':
                 start_player = self.ssl_sock.recv(1024).decode('utf8')
@@ -205,16 +203,15 @@ class BasicClientActorAbs(ABC):
         """
         pass
 
-
     @abstractmethod
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
         """
         Set the player_number of our actor, so that we can tell our MCTS which actor we are.
-        :param unique_id - integer identifier for the player within the whole tournament database
-        :param series_id - (1 or 2) indicating which player this will be for the ENTIRE series
-        :param player_map - a list of tuples: (unique-id series-id) for all players in a series
-        :param num_games - number of games to be played in the series
-        :param game_params - important game parameters.  For Hex = list with one item = board size (e.g. 5)
+        :param unique_id: integer identifier for the player within the whole tournament database
+        :param series_id: (1 or 2) indicating which player this will be for the ENTIRE series
+        :param player_map: a list of tuples: (unique-id series-id) for all players in a series
+        :param num_games: number of games to be played in the series
+        :param game_params: important game parameters.  For Hex = list with one item = board size (e.g. 5)
         :return
         """
         pass
@@ -262,7 +259,7 @@ class BasicClientActorAbs(ABC):
         Here you can handle what happens if you get an illegal action message. The default is to print the state and the
         illegal action.
         :param state: The state
-        :param action: The illegal action
+        :param illegal_action: The illegal action
         :return:
         """
         pass
@@ -275,10 +272,12 @@ class BasicClientActorAbs(ABC):
         self.ssl_sock.close()
         exit()
 
-    def pick_random_free_cell(self, state, size):
+    @staticmethod
+    def pick_random_free_cell(state, size):
         """
         This method selects a random move, based on which cells are free on the board. If you have aims to win the
         tournament, this should not be your default move ;)
+        :param state: The current state of the game.
         :param size: The size of the board
         :return: random move
         """
@@ -305,7 +304,3 @@ class BasicClientActorAbs(ABC):
             for j in range(size):
                 print(str(board[i * size + j]).rjust(2), end='')
             print()
-
-
-
-

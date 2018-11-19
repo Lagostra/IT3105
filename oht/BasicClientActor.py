@@ -9,42 +9,36 @@ from drl.train_actor import layers as trained_layers
 class BasicClientActor(BasicClientActorAbs):
     def __init__(self, ip_address=None, verbose=True, auto_test=False):
         self.series_id = -1
+        self.starting_player = -1
         BasicClientActorAbs.__init__(self, ip_address, verbose=verbose, auto_test=auto_test)
 
         self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_100.ckpt')
 
     def handle_get_action(self, state):
         """
-        Here you will use the neural net that you trained using MCTS to select a move for your actor on the current board.
-        Remember to use the correct player_number for YOUR actor! The default action is to select a random empty cell
-        on the board. This should be modified.
+        Here you will use the neural net that you trained using MCTS to select a move for your actor on the current
+        board. Remember to use the correct player_number for YOUR actor! The default action is to select a random empty
+        cell on the board. This should be modified.
         :param state: The current board in the form (1 or 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), where
         1 or 2 indicates the number of the current player.  If you are player 2 in the current series, for example,
         then you will see a 2 here throughout the entire series, whereas player 1 will see a 1.
         :return: Your actor's selected action as a tuple (row, column)
         """
 
-        # This is an example player who picks random moves. REMOVE THIS WHEN YOU ADD YOUR OWN CODE !!
-        # next_move = tuple(self.pick_random_free_cell(state, size=int(math.sqrt(len(state)-1))))
-
         current_player = state[0] - 1
         board = list(state[1:])
         state = (board, current_player)
-        # if self.verbose:
-            # print_board(board, 5)
         next_move = self.actor.select_move(state)[0][0]
-        # if self.verbose:
-            # print(f'Selected move: {next_move}\n')
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
         """
         Set the player_number of our actor, so that we can tell our MCTS which actor we are.
-        :param unique_id - integer identifier for the player within the whole tournament database
-        :param series_id - (1 or 2) indicating which player this will be for the ENTIRE series
-        :param player_map - a list of tuples: (unique-id series-id) for all players in a series
-        :param num_games - number of games to be played in the series
-        :param game_params - important game parameters.  For Hex = list with one item = board size (e.g. 5)
+        :param unique_id: integer identifier for the player within the whole tournament database
+        :param series_id: (1 or 2) indicating which player this will be for the ENTIRE series
+        :param player_map: a list of tuples: (unique-id series-id) for all players in a series
+        :param num_games: number of games to be played in the series
+        :param game_params: important game parameters.  For Hex = list with one item = board size (e.g. 5)
         :return
 
         """
@@ -74,8 +68,8 @@ class BasicClientActor(BasicClientActorAbs):
 
     def handle_game_over(self, winner, end_state):
         """
-        Here you can decide how to handle what happens when a game finishes. The default action is to print the winner and
-        the end state.
+        Here you can decide how to handle what happens when a game finishes. The default action is to print the winner
+        and the end state.
         :param winner: Winner ID (1 or 2)
         :param end_state: Final state of the board.
         :return:
@@ -134,7 +128,7 @@ class BasicClientActor(BasicClientActorAbs):
         Here you can handle what happens if you get an illegal action message. The default is to print the state and the
         illegal action.
         :param state: The state
-        :param action: The illegal action
+        :param illegal_action: The illegal action
         :return:
         """
         #############################
