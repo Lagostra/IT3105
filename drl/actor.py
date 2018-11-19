@@ -89,5 +89,4 @@ class Actor:
         minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
         for i in range(len(minibatch)):
             minibatch[i] = self.game.format_for_nn(minibatch[i][0]), minibatch[i][1]
-        print(minibatch[0])
         self.network.train(minibatch=minibatch)
