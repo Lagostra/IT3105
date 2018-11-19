@@ -8,13 +8,15 @@ from nn.network import Network
 
 class Actor:
 
-    def __init__(self, game, layers=[], minibatch_size=50, checkpoint=None, replay_file=None, rp_save_interval=1000):
+    def __init__(self, game, layers=[], minibatch_size=50, checkpoint=None, replay_file=None, rp_save_interval=1000,
+                 one_hot_encode_state=True):
         self.game = game
         self.replay_buffer = deque(maxlen=20000)
         self.minibatch_size = minibatch_size
         self.replay_file = replay_file
         self.rp_save_interval = min(rp_save_interval, 20000)
         self.rp_count = 0
+        self.one_hot_encode_state = one_hot_encode_state
 
         if replay_file is not None:
             try:
@@ -40,7 +42,7 @@ class Actor:
 
     def select_move(self, state, stochastic=False):
         possible_moves = self.game.get_moves(state)
-        formatted_state = self.game.format_for_nn(state)
+        formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
         predictions = self.network.predict([formatted_state])[0]
 
         predictions = predictions[:len(possible_moves)]
@@ -54,6 +56,7 @@ class Actor:
         return possible_moves[move]
 
     def add_to_replay_buffer(self, state, probabilities):
+        formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
         self.replay_buffer.append((state, probabilities))
         self.rp_count += 1
 

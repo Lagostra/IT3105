@@ -58,7 +58,7 @@ def train():
             move, probabilities = mcts.select_move(return_probabilities=True)
             # total_time += time.time() - start_time
             padded_probs = np.pad(probabilities, (0, game.num_possible_moves() - len(probabilities)), 'constant')
-            actor.add_to_replay_buffer(game.format_for_nn(state), padded_probs)
+            actor.add_to_replay_buffer(state, padded_probs)
             state = game.get_outcome_state(state, move)
 
         # print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
