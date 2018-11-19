@@ -16,7 +16,7 @@ class ActorTrainer:
 
     def __init__(self, game, checkpoint_directory, actor=None, network_save_interval=100, rollouts=100,
                  start_game=0, replay_save_interval=250, replay_limit=20000, minibatch_size=50,
-                 replay_file=None):
+                 replay_file=None, test_games=50):
         self.game = game
         self.checkpoint_directory = checkpoint_directory
         self.network_save_interval = network_save_interval
@@ -26,6 +26,7 @@ class ActorTrainer:
         self.replay_buffer = deque(maxlen=replay_limit)
         self.rp_count = 0
         self.minibatch_size = minibatch_size
+        self.test_games = test_games
 
         if replay_file == 'auto':
             self.replay_file = f'{checkpoint_directory}/replays.txt'
@@ -39,7 +40,7 @@ class ActorTrainer:
             self.actor = actor
             self.save_actor_to_file()
         else:
-            self.load_actor_from_file()
+            self.actor = self.load_actor_from_file()
             if start_game > 0:
                 self.actor.load_checkpoint(f'{checkpoint_directory}/game_{start_game}')
 
@@ -55,6 +56,9 @@ class ActorTrainer:
 
         if start_game == 0:
             self.actor.save_checkpoint(checkpoint_directory + '/game_0')
+            self.actor.save_checkpoint(checkpoint_directory + '/best')
+            with open(checkpoint_directory + '/best.txt', 'w') as f:
+                f.write(str(0))
 
     def train(self, num_games):
         for i in range(num_games):
@@ -79,8 +83,41 @@ class ActorTrainer:
             if self.game_count % self.network_save_interval == 0:
                 print(f'[GAME {self.game_count}] Saving neural network checkpoint')
                 self.actor.save_checkpoint(f'{self.checkpoint_directory}/game_{self.game_count}')
+                print(f'[GAME {self.game_count}] Testing against best model')
+                if self.test_against_best():
+                    print(f'[GAME {self.game_count}] New best found - saving checkpoint')
             print(f'[GAME {self.game_count}] Time elapsed: {time.time() - game_start_time:.2f}')
             print()
+
+    def test_against_best(self):
+        if self.test_games <= 0:
+            return False
+        best_actor = self.load_actor_from_file()
+        best_actor.load_checkpoint(f'{self.checkpoint_directory}/best')
+
+        starting = True
+        wins = 0
+        for i in range(self.test_games):
+            turn = starting
+            state = self.game.get_initial_state()
+            while not self.game.is_finished(state):
+                if turn:
+                    move = self.actor.select_move(state)
+                else:
+                    move = best_actor.select_move(state)
+                state = game.get_outcome_state(state, move[0])
+
+            result = game.evaluate_state(state)
+            if result == 1 and starting or result == -1 and not starting:
+                wins += 1
+            starting = not starting
+
+        if wins > self.test_games / 2:
+            self.actor.save_checkpoint(self.checkpoint_directory + '/best')
+            with open(self.checkpoint_directory + '/best.txt') as f:
+                f.write(str(self.game_count))
+            return True
+        return False
 
     def train_network(self):
         minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
@@ -132,7 +169,7 @@ class ActorTrainer:
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'rb') as f:
             layers = pickle.load(f)
 
-        self.actor = Actor(self.game, layers, one_hot_encode_state=one_hot)
+        return Actor(self.game, layers, one_hot_encode_state=one_hot)
 
     def save_actor_to_file(self):
         with open(f'{self.checkpoint_directory}/actor_params.txt', 'w') as f:
@@ -146,7 +183,7 @@ if __name__ == '__main__':
     game = Hex()
     layers = [100, 50]
     actor = Actor(game, layers, one_hot_encode_state=True)
-    num_games = 250
+    num_games = 2000
 
     trainer = ActorTrainer(
         game=game,
@@ -156,8 +193,8 @@ if __name__ == '__main__':
         rollouts=500,
         start_game=0,
         replay_save_interval=250,
-        replay_limit=20000,
-        minibatch_size=50,
+        replay_limit=5000,
+        minibatch_size=200,
         replay_file='auto',
     )
 
