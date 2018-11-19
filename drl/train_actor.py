@@ -61,6 +61,7 @@ def train():
             padded_probs = np.pad(probabilities, (0, game.num_possible_moves() - len(probabilities)), 'constant')
             actor.add_to_replay_buffer(state, padded_probs)
             state = game.get_outcome_state(state, move)
+            mcts.set_state(state)
 
         # print(f"[GAME {i+1}] Average time per move: {total_time / num_moves}")
         print("[GAME {}] Training neural network".format(i + 1))
