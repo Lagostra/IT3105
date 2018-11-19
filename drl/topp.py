@@ -42,7 +42,7 @@ class TOPP:
 
     def run_tournament(self, num_games=50, verbose=False):
         num_players = len(self.actors)
-        wins = [0] * num_players
+        wins = [[0] * num_players for i in range(num_players)]
         for p1 in range(num_players):
             for p2 in range(num_players):
                 if p1 == p2:
@@ -52,14 +52,19 @@ class TOPP:
                     result = self.play_single_game(p1, p2, verbose)
 
                     if result == 1:
-                        wins[p1] += 1
+                        wins[p1][p2] += 1
                     elif result == -1:
-                        wins[p2] += 1
+                        wins[p2][p1] += 1
 
         return wins
 
 
 if __name__ == '__main__':
-    topp = TOPP([0, 25, 75, 100], 'model/regular_')
-    print(topp.run_tournament(verbose=False))
-
+    num_games = 50
+    topp = TOPP([0, 25, 75, 100, 150], 'model/regular_')
+    result = topp.run_tournament(verbose=False, num_games=num_games)
+    for row in result:
+        for col in row:
+            print(str(col).ljust(len(str(num_games)) + 2), end='')
+        print(f'\t Total: {sum(row)}')
+    print()
