@@ -24,7 +24,7 @@ class BasicClientActor(BasicClientActorAbs):
         self.series_id = -1
         BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
 
-        self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_250.ckpt')
+        self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_100.ckpt')
 
     def handle_get_action(self, state):
         """
@@ -43,11 +43,11 @@ class BasicClientActor(BasicClientActorAbs):
         current_player = state[0] - 1
         board = list(state[1:])
         state = (board, current_player)
-        if self.verbose:
-            print_board(board, 5)
+        # if self.verbose:
+            # print_board(board, 5)
         next_move = self.actor.select_move(state)[0][0]
-        if self.verbose:
-            print(f'Selected move: {next_move}\n')
+        # if self.verbose:
+            # print(f'Selected move: {next_move}\n')
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
@@ -62,6 +62,7 @@ class BasicClientActor(BasicClientActorAbs):
 
         """
         self.series_id = series_id
+        print(f'Series ID: {series_id}')
         #############################
         #
         #

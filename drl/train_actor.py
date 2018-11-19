@@ -9,13 +9,13 @@ from games.random_player import RandomPlayer
 
 game = Hex()
 layers = [50, 25]
-save_interval = 25
-start_game = 0
-num_games = 100
+save_interval = 50
+start_game = 100
+num_games = 150
 rollouts = 200
 checkpoint_base = 'model/regular_'
 replay_file = 'model/replays_200_rollouts.txt'
-replay_save_interval = 1000
+replay_save_interval = 250
 one_hot_encode_state = True
 
 
