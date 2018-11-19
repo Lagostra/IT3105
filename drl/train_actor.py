@@ -6,17 +6,34 @@ from mcts.mcts import MCTS
 from games.hex import Hex
 from games.random_player import RandomPlayer
 
+import tensorflow as tf
+
+
+def model_function(x):
+    board = x[:, :-2]
+    board = tf.reshape(board, (-1, 5, 5, 1))
+    player = x[:, -2:]
+
+    conv1 = tf.layers.conv2d(board, 1, 2)
+    pool1 = tf.layers.max_pooling2d(conv1, 2, 2)
+    pool1_flat = tf.layers.flatten(pool1)
+
+    x = tf.concat([pool1_flat, player], 1)
+    x = tf.layers.dense(x, 50, activation=tf.nn.relu)
+    x = tf.layers.dense(x, 25, activation=tf.nn.relu)
+    return x
+
 
 game = Hex()
-layers = [50, 25]
+layers = model_function #[50, 25]
 save_interval = 25
 start_game = 0
 num_games = 100
 rollouts = 200
 checkpoint_base = 'model/regular_'
-replay_file = 'model/replays_100_rollouts.txt'
+replay_file = 'model/replays_200_rollouts.txt'
 replay_save_interval = 1000
-one_hot_encode_state = True
+one_hot_encode_state = False
 
 
 def actor_default_policy(state, moves):

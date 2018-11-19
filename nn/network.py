@@ -99,7 +99,8 @@ class Network:
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
-                 validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False):
+                 validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False,
+                 input_shape=None, output_shape=None):
         """
         Instantiates a new network.
         :param layers: Specification of the network's layers. Can either be an array of numbers, interpreted as number
@@ -137,13 +138,16 @@ class Network:
         self.saver = None
         self.graph = tf.Graph()
 
-        with self.graph.as_default():
-            if type(layers[0]) == int:
-                self.layers = []
-                for i in range(len(layers) - 1):
-                    self.layers.append(Dense(layers[i], layers[i + 1]))
-            else:
-                self.layers = layers
+        if type(layers) == list:
+            with self.graph.as_default():
+                if type(layers[0]) == int:
+                    self.layers = []
+                    for i in range(len(layers) - 1):
+                        self.layers.append(Dense(layers[i], layers[i + 1]))
+                else:
+                    self.layers = layers
+        else:
+            self.layers = layers
 
         self.learning_rate = learning_rate
         self.steps = steps
@@ -162,6 +166,9 @@ class Network:
         else:
             self.output_functions = output_functions
 
+        self.input_shape = input_shape if input_shape else self.layers[0].input_shape
+        self.output_shape = output_shape if output_shape else self.layers[-1].output_shape[0]
+
         self.data = load_data(data_source, case_fraction, validation_fraction, test_fraction)
 
     def build(self):
@@ -169,11 +176,11 @@ class Network:
         Builds the computation graph of the network. Must be called before training is carried out.
         """
         with self.graph.as_default():
-            self.inputs = tf.placeholder('float', shape=(None,) + self.layers[0].input_shape, name='inputs')
-            target_shape = (1,) if self.one_hot_encode_target else self.layers[-1].output_shape
+            self.inputs = tf.placeholder('float', shape=(None,) + self.input_shape, name='inputs')
+            target_shape = (1,) if self.one_hot_encode_target else self.output_shape
             targets = self.targets = tf.placeholder('float', shape=(None,) + target_shape, name='targets')
             if self.one_hot_encode_target:
-                targets = tf.squeeze(tf.one_hot(tf.cast(self.targets, 'int32'), self.layers[-1].output_shape[0], axis=1))
+                targets = tf.squeeze(tf.one_hot(tf.cast(self.targets, 'int32'), self.output_shape, axis=1))
             x = self.inputs
 
             if type(self.layers) == list:
@@ -194,11 +201,11 @@ class Network:
             self.loss = self.loss_function(targets, x)
             self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
 
-            save_variables = []
-            for layer in self.layers:
-                save_variables.append(layer.weights)
-                save_variables.append(layer.bias)
-            self.saver = tf.train.Saver(save_variables)
+            # save_variables = []
+            # for layer in self.layers:
+            #     save_variables.append(layer.weights)
+            #     save_variables.append(layer.bias)
+            self.saver = tf.train.Saver()
 
             self.add_summaries()
 

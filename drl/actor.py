@@ -25,7 +25,7 @@ class Actor:
                 pass
 
         self.network = Network(
-            [game.state_size()] + layers + [game.num_possible_moves()],
+            layers, #[game.state_size()] + layers + [game.num_possible_moves()],
             [],
             minibatch_size=50,
             steps=1,
@@ -33,7 +33,9 @@ class Actor:
             validation_fraction=0,
             test_fraction=0,
             learning_rate=0.001,
-            optimizer='adam'
+            optimizer='adam',
+            input_shape=(game.state_size(one_hot_encoded=one_hot_encode_state),),
+            output_shape=(game.num_possible_moves(),)
         )
         self.network.build()
 
@@ -57,7 +59,7 @@ class Actor:
 
     def add_to_replay_buffer(self, state, probabilities):
         formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
-        self.replay_buffer.append((state, probabilities))
+        self.replay_buffer.append((formatted_state, probabilities))
         self.rp_count += 1
 
         if self.rp_save_interval != -1 and self.rp_count % self.rp_save_interval == 0 and self.rp_count != 0:

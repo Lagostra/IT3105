@@ -106,7 +106,7 @@ class Hex:
     def state_size(self, one_hot_encoded=True):
         if one_hot_encoded:
             return self.size**2 * 2 + 2
-        return self.size**2 + 1
+        return self.size**2 + 2
 
     def format_for_nn(self, state, one_hot_encoded=True):
         player = state[1]
@@ -130,14 +130,8 @@ class Hex:
                     formatted_state.append(0)
 
         if player == 0:
-            if one_hot_encoded:
-                formatted_state.extend([1, 0])
-            else:
-                formatted_state.append(1)
+            formatted_state.extend([1, 0])
         else:
-            if one_hot_encoded:
-                formatted_state.extend([0, 1])
-            else:
-                formatted_state.append(-1)
+            formatted_state.extend([0, 1])
 
         return formatted_state

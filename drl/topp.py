@@ -60,6 +60,6 @@ class TOPP:
 
 
 if __name__ == '__main__':
-    topp = TOPP([0, 25, 50, 75, 100], 'model/regular_')
+    topp = TOPP([0, 100, 200], 'model/regular_')
     print(topp.run_tournament(verbose=False))
 
