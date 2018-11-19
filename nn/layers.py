@@ -15,7 +15,6 @@ class Dense:
     """
     Represents a simple dense neural network layer.
     """
-    output = None
 
     def __init__(self, input_size, output_size, activation_function='relu', name=None, weight_bounds=(0, 1)):
         """
@@ -27,6 +26,7 @@ class Dense:
         :param name: A name for the layer, applied to various tensors. Default: None
         :param weight_bounds: Bounds for the randomly generated weights of the layer. Default: (0, 1)
         """
+        self.output = None
         self.input_shape = (input_size,)
         self.output_shape = (output_size,)
         self.name = name
@@ -58,7 +58,6 @@ class DenseSequence:
     """
     Represents a sequence of dense neural network layers with similar parameter settings.
     """
-    output = None
 
     def __init__(self, layer_sizes, activation_function='relu', name=None, weight_bounds=(0, 1)):
         """
@@ -70,6 +69,7 @@ class DenseSequence:
         :param name: A name for the layer, applied to various tensors. Default: None
         :param weight_bounds: Bounds for the randomly generated weights of all sublayers. Default: (0, 1)
         """
+        self.output = None
         self.input_shape = (layer_sizes[0],)
         self.output_shape = (layer_sizes[-1],)
         self.name = name
@@ -99,13 +99,13 @@ class Dropout:
     Represents a dropout layer that will apply dropout on a random set of nodes for each step of training,
     automatically scaling output accordingly.
     """
-    output = None
 
     def __init__(self, drop_prob=0.2):
         """
         Creates a new dropout layer.
         :param drop_prob: The fraction of nodes to be dropped for each step of training.
         """
+        self.output = None
         self.keep_prob = 1 - drop_prob
 
     def execute(self, x):
@@ -115,4 +115,50 @@ class Dropout:
         :return: Tensor containing outputs from the layer.
         """
         self.output = tf.nn.dropout(x, self.keep_prob)
+        return self.output
+
+
+class Reshape:
+
+    def __init__(self, shape, name=None):
+        self.output = None
+        self.shape = shape
+        self.name = name
+
+    def execute(self, x):
+        self.output = tf.reshape(x, self.shape, name=self.name)
+        return self.output
+
+
+class Conv2D:
+
+    def __init__(self, filter, strides=1, padding='SAME', activation_function=None, name=None):
+        self.output = None
+        self.filter = filter
+        self.strides = (1, strides, strides, 1)
+        self.padding = padding
+        self.activation_function = _activation_functions[activation_function] if activation_function else None
+        self.name = name
+
+    def execute(self, x):
+        if self.activation_function:
+            self.output = self.activation_function(tf.nn.conv2d(x, self.filter, self.strides, self.padding),
+                                                   name=self.name)
+        else:
+            self.output = tf.nn.conv2d(x, self.filter, self.strides, self.padding, name=self.name)
+        return self.output
+
+
+class MaxPool2D:
+
+    def __init__(self, ksize, strides=None, padding='SAME', name=None):
+        self.output = None
+        strides = strides if strides else ksize
+        self.strides = (1, strides, strides, 1)
+        self.ksize = (1, ksize, ksize, 1)
+        self.padding = padding
+        self.name = name
+
+    def execute(self, x):
+        self.output = tf.nn.max_pool(x, self.ksize, self.strides, self.padding)
         return self.output
