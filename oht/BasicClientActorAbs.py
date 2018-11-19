@@ -7,12 +7,13 @@ from abc import ABC, abstractmethod
 
 class BasicClientActorAbs(ABC):
 
-    def __init__(self, IP_address=None,verbose=True):
+    def __init__(self, ip_address=None, verbose=True, auto_test=False):
         self.verbose = verbose
-        if IP_address is None:
+        self.auto_test = auto_test
+        if ip_address is None:
             self.IP_address = '129.241.113.109'
         else:
-            self.IP_address = IP_address
+            self.IP_address = ip_address
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
@@ -84,11 +85,17 @@ class BasicClientActorAbs(ABC):
 
             # We are asked to enter the name we want for our player in the tournament
             elif "player-name" in msg:
-                usr_in = input(msg)
+                if self.auto_test:
+                    usr_in = 'Eivind'
+                else:
+                    usr_in = input(msg)
 
             # We are asked if we want to qualify or play a test game
             elif "qualify" in msg:
-                usr_in = input(msg)
+                if self.auto_test:
+                    usr_in = 'n'
+                else:
+                    usr_in = input(msg)
 
             # We have no more qualification attempts remaining
             elif "Sorry" in msg:

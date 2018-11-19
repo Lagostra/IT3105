@@ -7,9 +7,9 @@ from drl.train_actor import layers as trained_layers
 
 
 class BasicClientActor(BasicClientActorAbs):
-    def __init__(self, IP_address=None,verbose=True):
+    def __init__(self, ip_address=None, verbose=True, auto_test=False):
         self.series_id = -1
-        BasicClientActorAbs.__init__(self, IP_address, verbose=verbose)
+        BasicClientActorAbs.__init__(self, ip_address, verbose=verbose, auto_test=auto_test)
 
         self.actor = Actor(Hex(), trained_layers, checkpoint='model/regular_100.ckpt')
 
@@ -107,7 +107,12 @@ class BasicClientActor(BasicClientActorAbs):
         #
         #############################
         print("Series ended, these are the stats:")
-        print(str(stats))
+        print(f'Series ID: {self.series_id}')
+        for stat in stats:
+            if stat[1] == self.series_id:
+                # Found my stats
+                print(f'Won {stat[2]}/{stat[2] + stat[3]} ({stat[2]/stat[2]+stat[3]:.2%})')
+        # print(str(stats))
 
     def handle_tournament_over(self, score):
         """
@@ -144,8 +149,8 @@ class BasicClientActor(BasicClientActorAbs):
         print('Action: ' + str(illegal_action))
 
 
-if __name__ ==  '__main__':
-    bsa = BasicClientActor(verbose=False)
+if __name__ == '__main__':
+    bsa = BasicClientActor(verbose=False, auto_test=True)
     # bsa.handle_get_action((1,
     #                        1, 1, 1, 1, 0,
     #                        0, 0, 0, 0, 2,
