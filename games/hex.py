@@ -68,33 +68,46 @@ class Hex:
         return neighbours
 
     def evaluate_state(self, state):
-        def is_won(pos, player, visited=[]):
-            if state[0][pos[0]*self.size + pos[1]] != player + 1:
+        player = state[1]
+
+        for i in range(self.size):
+            if self.is_connected_to_edge(state, (0, i), 0, True):
+                return 1
+            if self.is_connected_to_edge(state, (i, 0), 0, True):
+                return -1
+
+        return 0
+
+    def is_connected_to_edge(self, state, pos, player=None, last_edge=False):
+        visited = []
+        board = state[0]
+
+        if player is None:
+            player = board[pos[0]*self.size + pos[1]]
+        else:
+            player += 1
+
+        if player == 0:
+            return False
+
+        def is_connected(pos):
+            if board[pos[0]*self.size + pos[1]] != player:
                 return False
 
             visited.append(pos)
-            if player == 0 and pos[0] == self.size - 1\
-                    or player == 1 and pos[1] == self.size - 1:
+            if player == 1 and (pos[0] == self.size - 1 and last_edge or pos[0] == 0 and not last_edge)\
+                    or player == 2 and (pos[1] == self.size - 1 and last_edge or pos[1] == 0 and not last_edge):
                 return True
 
             for neighbour in self._get_neighbours(pos):
-                if state[0][neighbour[0] * self.size + neighbour[1]] == player + 1\
+                if state[0][neighbour[0] * self.size + neighbour[1]] == player\
                         and neighbour not in visited:
-                    result = is_won(neighbour, player, visited)
+                    result = is_connected(neighbour)
                     if result:
                         return True
             visited.remove(pos)
             return False
-
-        player = state[1]
-
-        for i in range(self.size):
-            if is_won((0, i), 0):
-                return 1
-            if is_won((i, 0), 1):
-                return -1
-
-        return 0
+        return is_connected(pos)
 
     def is_finished(self, state):
         return self.evaluate_state(state) != 0
@@ -102,24 +115,28 @@ class Hex:
     def num_possible_moves(self):
         return self.size**2
 
-    def state_size(self, one_hot_encoded=True):
-        if one_hot_encoded:
+    def state_size(self, format='one_hot'):
+        if format == 'one_hot':
             return self.size**2 * 2 + 2
+        if format == '6-channel':
+            return self.size**2 * 6 + 2
         return self.size**2 + 1
 
-    def format_for_nn(self, state, one_hot_encoded=True):
+    def format_for_nn(self, state, format='one_hot'):
         player = state[1]
         board = state[0]
 
         formatted_state = []
         for s in board:
-            if one_hot_encoded:
+            if format == 'one_hot':
                 if s == 1:
                     formatted_state.extend([1, 0])
                 elif s == 2:
                     formatted_state.extend([0, 1])
                 else:
                     formatted_state.extend([0, 0])
+            elif format == '6-channel':
+                pass
             else:
                 if s == 1:
                     formatted_state.append(1)
@@ -129,28 +146,28 @@ class Hex:
                     formatted_state.append(0)
 
         if player == 0:
-            if one_hot_encoded:
+            if format:
                 formatted_state.extend([1, 0])
             else:
                 formatted_state.append(1)
         else:
-            if one_hot_encoded:
+            if format:
                 formatted_state.extend([0, 1])
             else:
                 formatted_state.append(-1)
 
         return formatted_state
 
+
 if __name__ == '__main__':
     hex = Hex()
     board = [
         1, 1, 2, 1, 1,
         2, 1, 1, 1, 2,
-        0, 2, 2, 2, 0,
-        0, 0, 0, 0, 0,
-        2, 0, 0, 0, 0,
+        2, 0, 2, 1, 0,
+        0, 2, 0, 2, 2,
+        2, 0, 0, 2, 0,
     ]
 
     state = (board, 0)
-    print(hex.get_state_string(state))
-    print(hex.is_finished(state))
+    print(hex.is_connected_to_edge(state, (3, 3), last_edge=True))
