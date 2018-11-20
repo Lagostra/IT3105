@@ -83,7 +83,6 @@ class ActorTrainer:
             if self.game_count % self.network_save_interval == 0:
                 print(f'[GAME {self.game_count}] Saving neural network checkpoint')
                 self.actor.save_checkpoint(f'{self.checkpoint_directory}/game_{self.game_count}')
-                print(f'[GAME {self.game_count}] Testing against best model')
                 if self.test_against_best():
                     print(f'[GAME {self.game_count}] New best found - saving checkpoint')
             print(f'[GAME {self.game_count}] Time elapsed: {time.time() - game_start_time:.2f}')
@@ -92,6 +91,7 @@ class ActorTrainer:
     def test_against_best(self):
         if self.test_games <= 0:
             return False
+        print(f'[GAME {self.game_count}] Testing against best model...', end='')
         best_actor = self.load_actor_from_file()
         best_actor.load_checkpoint(f'{self.checkpoint_directory}/best')
 
@@ -113,6 +113,7 @@ class ActorTrainer:
                 wins += 1
             starting = not starting
 
+        print(f'won {wins}/{self.test_games}')
         if wins > self.test_games / 2:
             self.actor.save_checkpoint(self.checkpoint_directory + '/best')
             with open(self.checkpoint_directory + '/best.txt', 'w') as f:
@@ -191,8 +192,8 @@ if __name__ == '__main__':
         game=game,
         checkpoint_directory='model/1000x500x100-200',
         actor=actor,
-        network_save_interval=50,
-        rollouts=200,
+        network_save_interval=1,
+        rollouts=20,
         start_game=0,
         replay_save_interval=250,
         replay_limit=5000,
