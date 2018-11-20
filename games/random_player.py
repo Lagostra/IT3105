@@ -16,8 +16,8 @@ class RandomPlayer:
         :return: A move, as represented by the game class.
         """
         move = self.select_move_from_state(self.state)
-        self.state = self.game.get_outcome_state(self.state, move)
-        return move
+        self.state = self.game.get_outcome_state(self.state, move[0])
+        return move[0]
 
     def select_move_from_state(self, state):
         move = random.choice(self.game.get_moves(state))

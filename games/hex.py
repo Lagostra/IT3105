@@ -180,6 +180,6 @@ if __name__ == '__main__':
         2, 0, 0, 2, 0,
     ]
 
-    state = (board, 0)
-    print(hex.is_connected_to_edge(state, (4, 0), last_edge=True))
-    print(hex.is_finished(state))
+    s = (board, 0)
+    print(hex.is_connected_to_edge(s, (4, 0), last_edge=True))
+    print(hex.is_finished(s))
