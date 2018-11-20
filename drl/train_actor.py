@@ -169,11 +169,11 @@ class ActorTrainer:
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'rb') as f:
             layers = pickle.load(f)
 
-        return Actor(self.game, layers, one_hot_encode_state=one_hot)
+        return Actor(self.game, layers, format=one_hot)
 
     def save_actor_to_file(self):
         with open(f'{self.checkpoint_directory}/actor_params.txt', 'w') as f:
-            f.write(str(self.actor.one_hot_encode_state))
+            f.write(str(self.actor.format))
 
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'wb') as f:
             pickle.dump(self.actor.layers, f)
@@ -182,7 +182,7 @@ class ActorTrainer:
 if __name__ == '__main__':
     game = Hex()
     layers = [100, 50]
-    actor = Actor(game, layers, one_hot_encode_state=True)
+    actor = Actor(game, layers, format='one_hot')
     num_games = 2000
 
     trainer = ActorTrainer(

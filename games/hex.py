@@ -73,7 +73,7 @@ class Hex:
         for i in range(self.size):
             if self.is_connected_to_edge(state, (0, i), 0, True):
                 return 1
-            if self.is_connected_to_edge(state, (i, 0), 0, True):
+            if self.is_connected_to_edge(state, (i, 0), 1, True):
                 return -1
 
         return 0
@@ -165,9 +165,10 @@ if __name__ == '__main__':
         1, 1, 2, 1, 1,
         2, 1, 1, 1, 2,
         2, 0, 2, 1, 0,
-        0, 2, 0, 2, 2,
+        0, 2, 2, 2, 2,
         2, 0, 0, 2, 0,
     ]
 
     state = (board, 0)
-    print(hex.is_connected_to_edge(state, (3, 3), last_edge=True))
+    print(hex.is_connected_to_edge(state, (4, 0), last_edge=True))
+    print(hex.is_finished(state))

@@ -5,13 +5,13 @@ from nn.network import Network
 
 class Actor:
 
-    def __init__(self, game, layers=[], checkpoint=None, one_hot_encode_state=True):
+    def __init__(self, game, layers=[], checkpoint=None, format='one_hot'):
         self.game = game
-        self.one_hot_encode_state = one_hot_encode_state
+        self.format = format
         self.layers = layers
 
         self.network = Network(
-            [game.state_size()] + layers + [game.num_possible_moves()],
+            [game.state_size(format)] + layers + [game.num_possible_moves()],
             [],
             minibatch_size=50,
             steps=1,
@@ -28,7 +28,7 @@ class Actor:
 
     def select_move(self, state, stochastic=False):
         possible_moves = self.game.get_moves(state)
-        formatted_state = self.game.format_for_nn(state, one_hot_encoded=self.one_hot_encode_state)
+        formatted_state = self.game.format_for_nn(state, format=self.format)
         predictions = self.network.predict([formatted_state])[0]
 
         predictions = predictions[:len(possible_moves)]
