@@ -16,7 +16,7 @@ class ActorTrainer:
 
     def __init__(self, game, checkpoint_directory, actor=None, network_save_interval=100, rollouts=100,
                  start_game=0, replay_save_interval=250, replay_limit=20000, minibatch_size=50,
-                 replay_file=None, test_games=50):
+                 replay_file=None, test_games=50, nn_steps=1):
         self.game = game
         self.checkpoint_directory = checkpoint_directory
         self.network_save_interval = network_save_interval
@@ -27,6 +27,8 @@ class ActorTrainer:
         self.rp_count = 0
         self.minibatch_size = minibatch_size
         self.test_games = test_games
+        self.nn_steps = nn_steps
+
 
         if replay_file == 'auto':
             self.replay_file = f'{checkpoint_directory}/replays.txt'
@@ -78,7 +80,8 @@ class ActorTrainer:
                 self.mcts.set_state(state)
 
             print(f'[GAME {self.game_count}] Training neural network')
-            self.train_network()
+            for j in range(self.nn_steps):
+                self.train_network()
 
             if self.game_count % self.network_save_interval == 0:
                 print(f'[GAME {self.game_count}] Saving neural network checkpoint')
@@ -192,13 +195,14 @@ if __name__ == '__main__':
         game=game,
         checkpoint_directory='model/1000x500x100-200',
         actor=actor,
-        network_save_interval=1,
-        rollouts=20,
+        network_save_interval=50,
+        rollouts=200,
         start_game=0,
         replay_save_interval=250,
         replay_limit=5000,
         minibatch_size=200,
         replay_file='auto',
+        nn_steps=1
     )
 
     trainer.train(num_games)
