@@ -114,7 +114,7 @@ class ActorTrainer:
 
         if wins > self.test_games / 2:
             self.actor.save_checkpoint(self.checkpoint_directory + '/best')
-            with open(self.checkpoint_directory + '/best.txt') as f:
+            with open(self.checkpoint_directory + '/best.txt', 'w') as f:
                 f.write(str(self.game_count))
             return True
         return False
