@@ -106,6 +106,7 @@ class ActorTrainer:
                 else:
                     move = best_actor.select_move(state)
                 state = game.get_outcome_state(state, move[0])
+                turn = not turn
 
             result = game.evaluate_state(state)
             if result == 1 and starting or result == -1 and not starting:
@@ -181,17 +182,17 @@ class ActorTrainer:
 
 if __name__ == '__main__':
     game = Hex()
-    layers = [100, 50]
+    layers = [1000, 500, 100]
     format = '6-channel'
     actor = Actor(game, layers, format=format)
-    num_games = 100
+    num_games = 2000
 
     trainer = ActorTrainer(
         game=game,
-        checkpoint_directory='model/test',
+        checkpoint_directory='model/1000x500x100-200',
         actor=actor,
-        network_save_interval=25,
-        rollouts=100,
+        network_save_interval=50,
+        rollouts=200,
         start_game=0,
         replay_save_interval=250,
         replay_limit=5000,
