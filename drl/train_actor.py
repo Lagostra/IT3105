@@ -122,7 +122,7 @@ class ActorTrainer:
     def train_network(self):
         minibatch = random.sample(self.replay_buffer, min(self.minibatch_size, len(self.replay_buffer)))
         for i in range(len(minibatch)):
-            minibatch[i] = self.game.format_for_nn(minibatch[i][0]), minibatch[i][1]
+            minibatch[i] = self.game.format_for_nn(minibatch[i][0], format=self.actor.format), minibatch[i][1]
         self.actor.network.train(minibatch=minibatch)
 
     def create_default_policy(self):
@@ -164,16 +164,16 @@ class ActorTrainer:
     def load_actor_from_file(self):
         with open(f'{self.checkpoint_directory}/actor_params.txt') as f:
             lines = f.read().split('\n')
-            one_hot = bool(lines[0])
+            format = lines[0]
 
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'rb') as f:
             layers = pickle.load(f)
 
-        return Actor(self.game, layers, format=one_hot)
+        return Actor(self.game, layers, format=format)
 
     def save_actor_to_file(self):
         with open(f'{self.checkpoint_directory}/actor_params.txt', 'w') as f:
-            f.write(str(self.actor.format))
+            f.write(self.actor.format)
 
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'wb') as f:
             pickle.dump(self.actor.layers, f)
@@ -182,15 +182,16 @@ class ActorTrainer:
 if __name__ == '__main__':
     game = Hex()
     layers = [100, 50]
-    actor = Actor(game, layers, format='one_hot')
-    num_games = 2000
+    format = '6-channel'
+    actor = Actor(game, layers, format=format)
+    num_games = 100
 
     trainer = ActorTrainer(
         game=game,
-        checkpoint_directory='model/100x50-500',
+        checkpoint_directory='model/test',
         actor=actor,
-        network_save_interval=50,
-        rollouts=500,
+        network_save_interval=25,
+        rollouts=100,
         start_game=0,
         replay_save_interval=250,
         replay_limit=5000,
