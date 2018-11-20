@@ -3,7 +3,7 @@ import math
 
 from drl.actor import Actor
 from games.hex import Hex
-from drl.train_actor import layers as trained_layers
+from drl.train_actor import ActorTrainer
 
 
 class BasicClientActor(BasicClientActorAbs):
@@ -12,7 +12,8 @@ class BasicClientActor(BasicClientActorAbs):
         self.starting_player = -1
         BasicClientActorAbs.__init__(self, ip_address, verbose=verbose, auto_test=auto_test)
 
-        self.actor = Actor(Hex(), trained_layers, checkpoint='model/r100_0.ckpt')
+        trainer = ActorTrainer(self.hex, 'model/100x50-500', start_game=400)
+        self.actor = trainer.actor
 
     def handle_get_action(self, state):
         """
