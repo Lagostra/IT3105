@@ -1,4 +1,14 @@
 
+def one_hot_encode(number, buckets=None):
+    if not buckets or buckets < 0:
+        buckets = number
+
+    lst = [0]*buckets
+    if number > 0:
+        lst[number - 1] = 1
+    return lst
+
+
 class Hex:
 
     def __init__(self, size=5):
@@ -127,32 +137,33 @@ class Hex:
         board = state[0]
 
         formatted_state = []
-        for s in board:
-            if format == 'one_hot':
-                if s == 1:
-                    formatted_state.extend([1, 0])
-                elif s == 2:
-                    formatted_state.extend([0, 1])
+        for i in range(self.size):
+            for j in range(self.size):
+                s = board[i * self.size + j]
+                if format == 'one_hot':
+                    formatted_state.extend(one_hot_encode(s, 2))
+                elif format == '6-channel':
+                    formatted_state.extend(one_hot_encode(s, 2))
+                    
+                    conn_start = self.is_connected_to_edge(state, (i, j))
+                    conn_end = self.is_connected_to_edge(state, (i, j), last_edge=True)
+                    formatted_state.append(int(conn_start and s == 1))
+                    formatted_state.append(int(conn_end and s == 1))
+                    formatted_state.append(int(conn_start and s == 2))
+                    formatted_state.append(int(conn_end and s == 2))
                 else:
-                    formatted_state.extend([0, 0])
-            elif format == '6-channel':
-                pass
-            else:
-                if s == 1:
-                    formatted_state.append(1)
-                elif s == 2:
-                    formatted_state.append(-1)
-                else:
-                    formatted_state.append(0)
+                    if s == 1:
+                        formatted_state.append(1)
+                    elif s == 2:
+                        formatted_state.append(-1)
+                    else:
+                        formatted_state.append(0)
 
-        if player == 0:
-            if format:
-                formatted_state.extend([1, 0])
-            else:
-                formatted_state.append(1)
+        if format in ['one_hot', '6-channel']:
+            formatted_state.extend(one_hot_encode(player + 1, 2))
         else:
-            if format:
-                formatted_state.extend([0, 1])
+            if player == 0:
+                formatted_state.append(1)
             else:
                 formatted_state.append(-1)
 
