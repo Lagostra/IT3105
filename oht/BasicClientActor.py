@@ -1,19 +1,25 @@
 from oht.BasicClientActorAbs import BasicClientActorAbs
 import math
+import time
 
 from drl.actor import Actor
 from games.hex import Hex
 from drl.train_actor import ActorTrainer
+from mcts.mcts import MCTS
 
 
 class BasicClientActor(BasicClientActorAbs):
     def __init__(self, ip_address=None, verbose=True, auto_test=False):
         self.series_id = -1
         self.starting_player = -1
+        self.game_count = 0
+        self.series_count = 0
+        self.series_game_count = 0
         BasicClientActorAbs.__init__(self, ip_address, verbose=verbose, auto_test=auto_test)
 
-        trainer = ActorTrainer(self.hex, 'model/100x50-500', start_game=400)
-        self.actor = trainer.actor
+        trainer = ActorTrainer(self.hex, 'model/1000x500x100-200', start_game=250)
+        #self.actor = trainer.actor
+        self.actor = MCTS(self.hex, simulations=100)
 
     def handle_get_action(self, state):
         """
@@ -25,11 +31,12 @@ class BasicClientActor(BasicClientActorAbs):
         then you will see a 2 here throughout the entire series, whereas player 1 will see a 1.
         :return: Your actor's selected action as a tuple (row, column)
         """
-
         current_player = state[0] - 1
         board = list(state[1:])
         state = (board, current_player)
-        next_move = self.actor.select_move(state)[0][0]
+        #next_move = self.actor.select_move(state)[0][0]
+        self.actor.set_state(state)
+        next_move = self.actor.select_move()[0]
         return next_move
 
     def handle_series_start(self, unique_id, series_id, player_map, num_games, game_params):
@@ -44,7 +51,10 @@ class BasicClientActor(BasicClientActorAbs):
 
         """
         self.series_id = series_id
+        self.series_count += 1
+        print(f'Series {self.series_count} starting')
         print(f'Series ID: {series_id}')
+        self.series_game_count = 0
         #############################
         #
         #
@@ -59,6 +69,8 @@ class BasicClientActor(BasicClientActorAbs):
         :return
         """
         self.starting_player = start_player
+        self.game_count += 1
+        print(f'Game {self.game_count} starting. (Game {self.series_game_count} in series.)')
         #############################
         #
         #
@@ -107,6 +119,7 @@ class BasicClientActor(BasicClientActorAbs):
             if stat[1] == self.series_id:
                 # Found my stats
                 print(f'Won {stat[2]}/{stat[2] + stat[3]} ({stat[2]/(stat[2]+stat[3]):.0%})')
+        print()
         # print(str(stats))
 
     def handle_tournament_over(self, score):
@@ -145,7 +158,8 @@ class BasicClientActor(BasicClientActorAbs):
 
 
 if __name__ == '__main__':
-    bsa = BasicClientActor(verbose=False, auto_test=True)
+    start_time = time.time()
+    bsa = BasicClientActor(verbose=False, auto_test=False)
     # bsa.handle_get_action((1,
     #                        1, 1, 1, 1, 0,
     #                        0, 0, 0, 0, 2,
@@ -153,3 +167,4 @@ if __name__ == '__main__':
     #                        0, 0, 0, 0, 2,
     #                        0, 0, 0, 0, 2))
     bsa.connect_to_server()
+    print(time.time() - start_time)
