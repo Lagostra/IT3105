@@ -1,6 +1,7 @@
 .idea/
 __pycache__/
 venv/
+venv-gpu/
 probeview/
 model/
 .ipynb_checkpoints/
