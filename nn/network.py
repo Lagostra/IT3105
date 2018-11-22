@@ -99,7 +99,8 @@ class Network:
 
     def __init__(self, layers, data_source, learning_rate=0.01, steps=1000, minibatch_size=100, optimizer='adam',
                  loss_function='mse', case_fraction=1.0, validation_fraction=0.1, test_fraction=0.2,
-                 validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False):
+                 validation_interval=50, session=None, output_functions=None, one_hot_encode_target=False,
+                 accuracy_argmax=False):
         """
         Instantiates a new network.
         :param layers: Specification of the network's layers. Can either be an array of numbers, interpreted as number
@@ -153,6 +154,7 @@ class Network:
         self.validation_interval = validation_interval
         self.session = session
         self.one_hot_encode_target = one_hot_encode_target
+        self.accuracy_argmax = accuracy_argmax
 
         if output_functions == 'argmax_one_hot':
             self.output_functions = [
@@ -189,7 +191,12 @@ class Network:
                 for f in self.output_functions:
                     self.outputs = f(self.outputs)
 
-            self.accuracy = tf.metrics.accuracy(targets, self.outputs, name='accuracy')
+            t = targets
+            o = self.outputs
+            if self.accuracy_argmax:
+                t = tf.argmax(t)
+                o = tf.argmax(o)
+            self.accuracy = tf.metrics.accuracy(t, o, name='accuracy')
 
             self.loss = self.loss_function(targets, x)
             self.training_op = self.optimizer(self.learning_rate).minimize(self.loss)
@@ -260,7 +267,8 @@ class Network:
             errors = []
             validate_accuracies = []
 
-            summaries = tf.summary.merge(self.summaries)
+            if len(self.summaries):
+                summaries = tf.summary.merge(self.summaries)
 
             for i in range(1, self.steps + 1):
                 if not minibatch:
@@ -273,9 +281,13 @@ class Network:
                     self.targets: targets
                 }
 
-                _, l, summary = self.session.run([self.training_op, self.loss, summaries], feed_dict=feed_dict)
+                if len(self.summaries):
+                    _, l, summary = self.session.run([self.training_op, self.loss, summaries], feed_dict=feed_dict)
+                else:
+                    _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
 
-                self.session.probe_stream.add_summary(summary, global_step=i)
+                if len(self.summaries):
+                    self.session.probe_stream.add_summary(summary, global_step=i)
 
                 if i % 50 == 0:
                     errors.append(l)
