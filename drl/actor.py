@@ -1,4 +1,5 @@
 import numpy as np
+import tensorflow as tf
 
 from nn.network import Network
 
@@ -20,7 +21,8 @@ class Actor:
             validation_fraction=0,
             test_fraction=0,
             learning_rate=0.001,
-            optimizer=optimizer
+            optimizer=optimizer,
+            output_functions=[tf.nn.softmax]
         )
         self.network.build()
 
