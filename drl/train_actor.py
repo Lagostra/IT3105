@@ -29,7 +29,6 @@ class ActorTrainer:
         self.test_games = test_games
         self.nn_steps = nn_steps
 
-
         if replay_file == 'auto':
             self.replay_file = f'{checkpoint_directory}/replays.txt'
         else:
@@ -170,15 +169,19 @@ class ActorTrainer:
         with open(f'{self.checkpoint_directory}/actor_params.txt') as f:
             lines = f.read().split('\n')
             format = lines[0]
+            optimizer = 'adam'
+            if len(lines) > 1:
+                optimizer = lines[1]
 
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'rb') as f:
             layers = pickle.load(f)
 
-        return Actor(self.game, layers, format=format)
+        return Actor(self.game, layers, format=format, optimizer=optimizer)
 
     def save_actor_to_file(self):
         with open(f'{self.checkpoint_directory}/actor_params.txt', 'w') as f:
-            f.write(self.actor.format)
+            f.write(self.actor.format + '\n')
+            f.write(self.actor.optimizer)
 
         with open(f'{self.checkpoint_directory}/actor_layers.bin', 'wb') as f:
             pickle.dump(self.actor.layers, f)
@@ -186,14 +189,14 @@ class ActorTrainer:
 
 if __name__ == '__main__':
     game = Hex()
-    layers = [1000, 500, 100]
+    layers = [1000, 250, 25]
     format = '6-channel'
-    actor = Actor(game, layers, format=format)
-    num_games = 2000
+    actor = Actor(game, layers, format=format, optimizer='rmsprop')
+    num_games = 0
 
     trainer = ActorTrainer(
         game=game,
-        checkpoint_directory='model/1000x500x100-200',
+        checkpoint_directory='model/pre-trained',
         actor=actor,
         network_save_interval=50,
         rollouts=200,
@@ -202,7 +205,7 @@ if __name__ == '__main__':
         replay_limit=5000,
         minibatch_size=200,
         replay_file='auto',
-        nn_steps=1
+        nn_steps=50,
     )
 
     trainer.train(num_games)

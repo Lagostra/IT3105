@@ -5,10 +5,11 @@ from nn.network import Network
 
 class Actor:
 
-    def __init__(self, game, layers=[], checkpoint=None, format='one_hot'):
+    def __init__(self, game, layers=[], checkpoint=None, format='one_hot', optimizer='adam'):
         self.game = game
         self.format = format
         self.layers = layers
+        self.optimizer = optimizer
 
         self.network = Network(
             [game.state_size(format)] + layers + [game.num_possible_moves()],
@@ -19,7 +20,7 @@ class Actor:
             validation_fraction=0,
             test_fraction=0,
             learning_rate=0.001,
-            optimizer='adam'
+            optimizer=optimizer
         )
         self.network.build()
 
