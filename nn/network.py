@@ -21,7 +21,7 @@ _optimizers = {
 _loss_functions = {
     'mse': lambda y, x: tf.reduce_mean(tf.square(y - x)),
     'mae': tf.losses.absolute_difference,
-    'cross_entropy': lambda y, x: tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x)),
+    'cross_entropy': lambda y, x: tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=x),
 }
 
 
@@ -205,9 +205,9 @@ class Network:
             for layer in self.layers:
                 save_variables.append(layer.weights)
                 save_variables.append(layer.bias)
-            self.saver = tf.train.Saver(save_variables, max_to_keep=None)
+            self.saver = tf.train.Saver(max_to_keep=None)
 
-            self.add_summaries()
+            #self.add_summaries()
 
             if not self.session:
                 self.session = tft.gen_initialized_session()
@@ -265,6 +265,7 @@ class Network:
                 train_set, validate_set, _ = self.data
 
             errors = []
+            train_accuracies = []
             validate_accuracies = []
 
             if len(self.summaries):
@@ -282,16 +283,21 @@ class Network:
                 }
 
                 if len(self.summaries):
-                    _, l, summary = self.session.run([self.training_op, self.loss, summaries], feed_dict=feed_dict)
+                    _, l, acc, summary = self.session.run([self.training_op, self.loss, self.accuracy, summaries], feed_dict=feed_dict)
                 else:
-                    _, l = self.session.run([self.training_op, self.loss], feed_dict=feed_dict)
+                    _, l, acc = self.session.run([self.training_op, self.loss, self.accuracy], feed_dict=feed_dict)
+
+                acc = acc[0]
 
                 if len(self.summaries):
                     self.session.probe_stream.add_summary(summary, global_step=i)
 
                 if i % 50 == 0:
+                    if len(l):
+                        l = sum(l)
                     errors.append(l)
-                    print('[Step {}] Error: {}'.format(i, l))
+                    train_accuracies.append(acc)
+                    print(f'[Step {i}] Error: {l:.3f} Accuracy: {acc:.2%}')
 
                 if i % self.validation_interval == 0 and len(validate_set):
                     acc = self.evaluate(validate_set)[1]
@@ -301,10 +307,12 @@ class Network:
                 fig, ax1 = plt.subplots()
 
                 ax1.plot(np.arange(0, self.steps, 50), errors, c='blue')
+                ax3 = ax1.twinx()
+                ax3.plot(np.arange(0, self.steps, 50), train_accuracies, c='yellow')
                 if len(validate_accuracies):
                     ax2 = ax1.twinx()
                     ax2.plot(np.arange(0, self.steps, self.validation_interval), validate_accuracies, c='red')
-                fig.legend(['Minibatch error', 'Validation accuracy'])
+                fig.legend(['Minibatch error', 'Train accuracy', 'Validation accuracy'])
                 ax1.set_xlabel('Step')
                 plt.show()
 
@@ -348,6 +356,9 @@ class Network:
             train_error, train_acc = self.evaluate(train_set)
 
         test_error, test_acc = self.evaluate(test_set)
+        if len(train_error):
+            train_error = sum(train_error)
+            test_error = sum(test_error)
 
         if include_train_set:
             print("[Train set] Error: {:.2f}  Accuracy: {:.2f}%".format(train_error, train_acc * 100))
