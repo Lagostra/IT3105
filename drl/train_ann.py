@@ -1,9 +1,11 @@
+import tensorflow as tf
+
 from nn.network import Network
 from games.hex import Hex
 
 game = Hex()
 state_format = '6-channel'
-layers = [1000, 500, 1000]
+layers = [1024, 512, 16]
 
 
 def load_data(path):
@@ -28,18 +30,24 @@ if __name__ == '__main__':
     network = Network(
         [game.state_size(state_format)] + layers + [game.num_possible_moves()],
         data,
-        minibatch_size=50,
-        steps=1000,
+        minibatch_size=500,
+        steps=5000,
         loss_function='cross_entropy',
+        case_fraction=0.1,
         validation_fraction=0,
-        test_fraction=0.2,
-        learning_rate=0.001,
-        optimizer='adam',
-        accuracy_argmax=True
+        validation_interval=1000,
+        test_fraction=0,
+        learning_rate=0.01,
+        optimizer='rmsprop',
+        accuracy_argmax=True,
+        output_functions=[tf.nn.softmax]
     )
 
-
     network.build()
+    #network.save('model/pre-trained/step-0')
+    # for i in range(4):
+    #     network.train(plot_results=True)
+    #     network.save(f'model/pre-trained/game_{i*50}')
     network.train(plot_results=True)
-    #network.save('model/manual/test3')
-    network.test()
+    network.save('model/manual/test4')
+    #network.test()

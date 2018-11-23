@@ -189,7 +189,7 @@ class ActorTrainer:
 
 if __name__ == '__main__':
     game = Hex()
-    layers = [1000, 250, 25]
+    layers = [1024, 512, 16]
     format = '6-channel'
     actor = Actor(game, layers, format=format, optimizer='rmsprop')
     num_games = 0
