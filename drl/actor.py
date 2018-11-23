@@ -40,8 +40,12 @@ class Actor:
             return possible_moves[move]
 
         predictions = np.array(predictions)
-        predictions = predictions / predictions.sum()
-        move = np.random.choice(np.arange(0, len(predictions)), p=predictions)
+        ps = predictions.sum()
+        if predictions.sum() == 0:
+            move = np.random.choice(np.arange(0, len(predictions)))
+        else:
+            predictions = predictions / predictions.sum()
+            move = np.random.choice(np.arange(0, len(predictions)), p=predictions)
         return possible_moves[move]
 
     def save_checkpoint(self, checkpoint):
